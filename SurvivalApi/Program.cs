@@ -1,6 +1,7 @@
-using SignalRWebpack.Hubs;
+using SurvivalAapi.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
+
 builder.Services.AddSignalR();
 
 var app = builder.Build();
@@ -8,8 +9,8 @@ var app = builder.Build();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
-app.MapGet("/", () => "Hello World!");
+app.MapGet("/api/hello", () => "Hello World!");
 
-app.MapHub<GameHub>("/hub");
+app.MapHub<GameHub>("/api/hub");
 
 app.Run();
