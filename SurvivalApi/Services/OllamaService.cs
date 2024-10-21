@@ -1,4 +1,3 @@
-
 using System.Text.Json;
 
 namespace SurvivalApi.Services;
@@ -41,10 +40,9 @@ public class OllamaService
         var toSerialize = new OllamaPayload{
             prompt = prompt
         };
-        var payload = JsonSerializer.Serialize(toSerialize);
-        var res = await client.PostAsJsonAsync(
+        var response = await client.PostAsJsonAsync(
             "http://localhost:11434/api/generate", toSerialize); 
-        var answer = res.Content.ReadAsStringAsync().Result;
+        var answer = response.Content.ReadAsStringAsync().Result;
         var split = "done_reason";
         if (answer.IndexOf(split) != -1){
             string substring = answer.Substring(0, answer.IndexOf(split) - 2) + "}";
@@ -58,26 +56,37 @@ public class OllamaService
         }
     }
 
-    public String CleanOllamaResponse(String res) {
-        return res;
-    }
-
-    public async Task CreateScenario(String[] playerNames) {
-        var standardPrompt = "create one dangerous scenario involving the following people:";
+    public async Task<String> CreateScenario(String[] playerNames) {
+        var standardPrompt = "create one dangerous scenario threatening the following people:";
         var playersString = string.Join(" ", playerNames);
-        var prompt = standardPrompt + playersString;
-        await SendToOllama(prompt);
+        var prompt = standardPrompt + playersString + ". Make it under 400 characters, and use their names";
+        var response = await SendToOllama(prompt);
+        return response;
     }
 
-    public async Task RunScenario(String scenario) {
-        var instructions = "Evaluate the prompt and tell us what the outcome is";
-        var prompt = instructions + scenario;
-        await SendToOllama(prompt);
+    public async Task<String> RunScenario(String scenario, String actions) {
+        var instructions = "Evaluate the prompt and tell us what the outcome is, make it under 400 characters and decide who lives and dies";
+        var prompt = instructions + scenario + actions;
+        var response = await SendToOllama(prompt);
+        return response;
     }
 
-    public async Task TestSendToOllama() {
+    public async Task TestSendToOllama() {      // /api/test/ollama
         var standardPrompt = "create one dangerous scenario, make it under 200 characters";
-        var prompt = await SendToOllama(standardPrompt);
-        Console.WriteLine(prompt);
+        var response = await SendToOllama(standardPrompt);
+        Console.WriteLine(response);
+    }
+
+    public async Task TestCreateScenario() {    // /api/test/create
+        string[] playerNames = ["Luke", "Raed", "Tommy"];
+        var response = await CreateScenario(playerNames);
+        Console.WriteLine(response);
+    }
+
+    public async Task TestRunScenario() {       // /api/test/run
+        var scenario = "A powerful explosion rocks Luke's abandoned warehouse, trapping him beneath rubble. As firefighters struggle to free him, Tommy stumbles upon a smoke-filled Tommy enters, revealing that his brother was caught in the blast just moments earlier. The explosive wreckage seals their uncertain fate, casting darkness over their family's tragic past.";
+        var answer = "Put on my gas mask and try to escape";
+        var response = await RunScenario(scenario, answer);
+        Console.WriteLine(response);
     }
 }

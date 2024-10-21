@@ -17,6 +17,16 @@ app.MapGet("/api/test/ollama", async () => {
     await ollamaService.TestSendToOllama();
 });
 
+app.MapGet("/api/test/create", async () => { 
+    var ollamaService = new OllamaService();
+    await ollamaService.TestCreateScenario();
+});
+
+app.MapGet("/api/test/run", async () => { 
+    var ollamaService = new OllamaService();
+    await ollamaService.TestRunScenario();
+});
+
 app.MapHub<GameHub>("/api/hub");
 
 app.Run();
