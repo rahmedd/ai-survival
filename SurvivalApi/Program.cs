@@ -1,4 +1,4 @@
-using SurvivalAapi.Hubs;
+using SurvivalApi.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
