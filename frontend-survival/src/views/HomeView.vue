@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { useSignalR } from '@dreamonkey/vue-signalr'
-import axios from 'axios';
 import InputText from 'primevue/inputtext';
 import FloatLabel from 'primevue/floatlabel';
 import Button from 'primevue/button';
-import Aura from '@primevue/themes/aura';
+import { ref } from 'vue';
 
 const signalr = useSignalR()
 
@@ -16,59 +15,15 @@ signalr.on('Send', message => {
 	console.log(`Send: ${message}`)
 })
 
+const roomCode = ref('');
+const username = ref('');
 
-
-async function send() {
-	console.log('trying to send')
-	try {
-		const username = new Date().getTime()
-
-		const res = await signalr.invoke(
-			'newMessage',
-			username,
-			'this is my message to earth',
-		)
-		// const res = await signalr.invoke('newMessage', {
-		// 	username: username,
-		// 	message: 'this is my message to earth',
-		// })
-	}
-	catch (ex) {
-		console.log(ex)
-	}
+function createGame() {
+	console.log(username.value);
 }
 
-
-
-const roomCode = '';
-const username = '';
-
-async function createGame() {
-	console.log(username);
-}
-function joinGame() {
-// async function joinGame(roomCode: string, username: string) { 
-	// try {
-	// 	// await axios.post('/api/Room/CreateGame')
-	// 	try {
-	// 	// const username = new Date().getTime()
-
-	// 		const res = await signalr.invoke(
-	// 			'addToGroup',
-	// 			'abc-def-ghi',
-	// 		)
-
-	// 		console.log(res)
-	// 	}
-	// 	catch (ex) {
-	// 		console.log(ex)
-	// 	}
-	// }
-	// catch (ex) {
-	// 	console.log(ex)
-	// }
-	
-	console.log(roomCode + username);
+function joinGame() {	
+	console.log(roomCode.value + username.value);
 }
 </script>
 
