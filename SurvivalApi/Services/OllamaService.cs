@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace SurvivalApi.Services;
+namespace api.Services;
 
 public class ResponseType
 {
