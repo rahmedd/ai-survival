@@ -1,5 +1,5 @@
 
-namespace SurvivalApi.Services;
+namespace api.Services;
 
 public class OllamaService
 {

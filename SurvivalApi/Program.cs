@@ -1,16 +1,49 @@
-using SurvivalApi.Hubs;
+using StackExchange.Redis;
+using api.Hubs;
+using api.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddEnvironmentVariables();
+
+var redisConnectionString = builder.Configuration["ConnectionStrings:REDIS_CONNECTION_STRING"] ?? throw new ArgumentNullException("REDIS_CONNECTION_STRING", "Connection string 'REDIS_CONNECTION_STRING' not found.");
+builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConnectionString));
+
+// var connectionString = builder.Configuration.GetValue<string>("DB_CONNECTION_STRING") ?? throw new ArgumentNullException("DB_CONNECTION_STRING", "Connection string 'DB_CONNECTION_STRING' not found.");
+// builder.Services.AddDbContext<AppDbContext>(options =>
+// {
+// 	options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+// });
 
 builder.Services.AddSignalR();
+builder.Services.AddControllers();
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+
+builder.Services.AddAuthorization();
+
+// builder.Services.AddIdentity<AppUser, AppRole>()
+// 	.AddEntityFrameworkStores<AppDbContext>();
+
+// builder.Services.AddScoped<AuthService>();
+// builder.Services.AddScoped<GeoService>();
 
 var app = builder.Build();
 
-app.UseDefaultFiles();
-app.UseStaticFiles();
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+	// app.UseSwagger();
+	// app.UseSwaggerUI();
+}
 
-app.MapGet("/api/hello", () => "Hello World!");
+app.UseHttpsRedirection();
 
+app.UseAuthorization();
+
+app.MapControllers();
 app.MapHub<GameHub>("/api/hub");
+// app.MapCo
+
+app.UsePathBase("/api");
 
 app.Run();
