@@ -1,6 +1,7 @@
 using StackExchange.Redis;
 using api.Hubs;
 using api.Controllers;
+using api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
@@ -40,7 +41,23 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
+app.MapGet("/api/test/ollama", async () => { 
+    var ollamaService = new OllamaService();
+    await ollamaService.TestSendToOllama();
+});
+
+app.MapGet("/api/test/create", async () => { 
+    var ollamaService = new OllamaService();
+    await ollamaService.TestCreateScenario();
+});
+
+app.MapGet("/api/test/run", async () => { 
+    var ollamaService = new OllamaService();
+    await ollamaService.TestRunScenario();
+});
+
 app.MapControllers();
+
 app.MapHub<GameHub>("/api/hub");
 // app.MapCo
 
