@@ -26,7 +26,8 @@ async function send() {
 		// 	username: username,
 		// 	message: 'this is my message to earth',
 		// })
-	} catch (ex) {
+	}
+	catch (ex) {
 		console.log(ex)
 	}
 }
@@ -37,15 +38,16 @@ async function joinGame() {
 		try {
 		// const username = new Date().getTime()
 
-		const res = await signalr.invoke(
-			'addToGroup',
-			'abc-def-ghi',
-		)
+			const res = await signalr.invoke(
+				'addToGroup',
+				'abc-def-ghi',
+			)
 
-		console.log(res)
-	} catch (ex) {
-		console.log(ex)
-	}
+			console.log(res)
+		}
+		catch (ex) {
+			console.log(ex)
+		}
 	}
 	catch (ex) {
 		console.log(ex)
