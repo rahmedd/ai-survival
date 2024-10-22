@@ -10,11 +10,11 @@ public class ResponseType
     public bool done { get; set; }
     public String? done_reason { get; set; }
     public Int64[]? context { get; set; }
-    public int total_duration { get; set; }
-    public int load_duration { get; set; }
-    public int prompt_eval_count { get; set; }
+    public Int64 total_duration { get; set; }
+    public Int64 load_duration { get; set; }
+    public Int64 prompt_eval_count { get; set; }
     public Int64 prompt_eval_duration { get; set; }
-    public int eval_count { get; set; }
+    public Int64 eval_count { get; set; }
     public Int64 eval_duration { get; set; }
 
 }
