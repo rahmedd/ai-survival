@@ -18,8 +18,8 @@ signalr.on('Send', message => {
 const roomCode = ref('');
 const username = ref('');
 
-function createGame() {
-	console.log(username.value);
+async function createGame() {
+	joinGame()
 }
 
 async function send() {
@@ -55,7 +55,7 @@ async function joinGame() {
 <template>
 	<header>
 		<h1>Ai Danger Game</h1>
-		<Button label="Send Msg"></Button>
+		<Button label="Send Msg" @click="send"></Button>
 	</header>
 	<main>
 		<div>
@@ -68,7 +68,7 @@ async function joinGame() {
 				<label for="on_label">Room Code</label>
 			</FloatLabel>
 			<Button label="Create Game" @click="createGame"></Button>
-			<Button label="Join Game" @click="joinGame()"></Button>
+			<Button label="Join Game" @click="joinGame"></Button>
 			<p>{{username}}</p>
 		</div>
 	</main>

@@ -14,6 +14,9 @@ importers:
       '@microsoft/signalr':
         specifier: ^8.0.7
         version: 8.0.7
+      '@primevue/themes':
+        specifier: ^4.1.1
+        version: 4.1.1
       axios:
         specifier: ^1.7.7
         version: 1.7.7
@@ -585,6 +588,10 @@ packages:
 
   '@primevue/icons@4.1.1':
     resolution: {integrity: sha512-Ybeb+AHUsVybITuYNwS7goqWcXLLgCDSiCPoymyYwYkzn5qLakvJbQH1EX8lGOsrvqK0hG+s+n7Wm2MHJ8A72w==}
+    engines: {node: '>=12.11.0'}
+
+  '@primevue/themes@4.1.1':
+    resolution: {integrity: sha512-ec2gBN2vP0ydGtGAzC0nYCFqYN7CzvXxnlJqcvcPIo3rP/pcdj+FkzAe3y2DMG3OorYtqdzoyGtBefQrx3v5ag==}
     engines: {node: '>=12.11.0'}
 
   '@rollup/pluginutils@5.1.2':
@@ -2712,6 +2719,10 @@ snapshots:
       '@primevue/core': 4.1.1(vue@3.5.12(typescript@5.5.4))
     transitivePeerDependencies:
       - vue
+
+  '@primevue/themes@4.1.1':
+    dependencies:
+      '@primeuix/styled': 0.2.0
 
   '@rollup/pluginutils@5.1.2(rollup@4.24.0)':
     dependencies:
