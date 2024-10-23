@@ -22,8 +22,33 @@ function createGame() {
 	console.log(username.value);
 }
 
-function joinGame() {	
-	console.log(roomCode.value + username.value);
+async function send() {
+	console.log('trying to send')
+	try {
+		const username = new Date().getTime()
+
+		const res = await signalr.invoke(
+			'SendMessageToGroup',
+			'abc-def-ghi',
+			'this is my message to earth',
+		)
+
+	} catch (ex) {
+		console.log(ex)
+	}
+}
+
+async function joinGame() {
+	try {
+		const res = await signalr.invoke(
+			'addToGroup',
+			'abc-def-ghi',
+			`user-${new Date().toISOString()}`
+		)
+	}
+	catch (ex) {
+		console.log(ex)
+	}
 }
 </script>
 
