@@ -18,36 +18,23 @@ async function send() {
 		const username = new Date().getTime()
 
 		const res = await signalr.invoke(
-			'newMessage',
-			username,
+			'SendMessageToGroup',
+			'abc-def-ghi',
 			'this is my message to earth',
 		)
-		// const res = await signalr.invoke('newMessage', {
-		// 	username: username,
-		// 	message: 'this is my message to earth',
-		// })
-	}
-	catch (ex) {
+
+	} catch (ex) {
 		console.log(ex)
 	}
 }
 
-async function joinGame() { 
+async function joinGame() {
 	try {
-		// await axios.post('/api/Room/CreateGame')
-		try {
-		// const username = new Date().getTime()
-
-			const res = await signalr.invoke(
-				'addToGroup',
-				'abc-def-ghi',
-			)
-
-			console.log(res)
-		}
-		catch (ex) {
-			console.log(ex)
-		}
+		const res = await signalr.invoke(
+			'addToGroup',
+			'abc-def-ghi',
+			`user-${new Date().toISOString()}`
+		)
 	}
 	catch (ex) {
 		console.log(ex)
@@ -58,7 +45,6 @@ async function joinGame() {
 <template>
 	<main>
 		<button @click="send">send msg</button>
-		<button @click="createGame">create game</button>
 		<button @click="joinGame">join game</button>
 	</main>
 </template>
