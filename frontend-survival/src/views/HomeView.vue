@@ -28,11 +28,12 @@ async function send() {
 	}
 }
 
-async function joinGame() { 
+async function joinGame() {
 	try {
 		const res = await signalr.invoke(
 			'addToGroup',
 			'abc-def-ghi',
+			`user-${new Date().toISOString()}`
 		)
 	}
 	catch (ex) {
