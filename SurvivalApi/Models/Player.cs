@@ -13,4 +13,9 @@ public class Player
 		Username = username;
 		Health = health;
 	}
+
+	public void TakeDamage(int damage = 1)
+	{
+		Health -= damage;
+	}
 }
