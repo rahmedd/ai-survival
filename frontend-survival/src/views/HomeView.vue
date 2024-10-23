@@ -7,10 +7,6 @@ import { ref } from 'vue';
 
 const signalr = useSignalR()
 
-// signalr.on('MessageReceived', message => {
-// 	console.log(`MessageReceived: ${message}`)
-// })
-
 signalr.on('Send', message => {
 	console.log(`Send: ${message}`)
 })
@@ -69,8 +65,12 @@ async function joinGame() {
 			</FloatLabel>
 			<Button label="Create Game" @click="createGame"></Button>
 			<Button label="Join Game" @click="joinGame"></Button>
-			<p>{{username}}</p>
 		</div>
+		<a href="lobby">LobbyView</a>
+		<a href="prompt">PromptView</a>
+		<a href="answer">AnswerView</a>
+		<a href="judge">JudgeView</a>
+		<a href="leaderboard">LeaderboardView</a>
 	</main>
 
 </template>
