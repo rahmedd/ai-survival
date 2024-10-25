@@ -5,7 +5,7 @@ import Avatar from 'primevue/avatar';
 import ProgressBar from 'primevue/progressbar';
 import ProgressSpinner from "primevue/progressspinner";
 import Card from "primevue/card";
-import { ref, onMounted, onUpdated } from 'vue';
+import { ref } from 'vue';
 import router from "@/router";
 
 const players = ref<Player[]>([
@@ -68,7 +68,7 @@ function allReady() {
 	</header>
 	<main>
 		<h1>Judging</h1>
-		<h2></h2>
+		<h2>{{prompt}}</h2>
 		<Card style="width: 25rem; overflow: hidden">
 			<template #header>{{currentUsername.emoji}}</template>
 			<template #title>{{ currentUsername.name }}</template>
