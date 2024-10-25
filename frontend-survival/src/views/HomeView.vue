@@ -15,7 +15,7 @@ const roomCode = ref('');
 const username = ref('');
 
 async function createGame() {
-	joinGame()
+	await joinGame()
 }
 
 async function send() {
