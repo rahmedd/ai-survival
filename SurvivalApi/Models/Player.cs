@@ -1,20 +1,14 @@
 
 namespace api.Models;
 
-public class Player
+public class Player(string id, string username, int health = 5, bool host = false)
 {
-	public string ConnectionId { get; set; }
-	public string Username { get; set; }
-	public int Health { get; set; }
+    public string Id { get; set; } = id;
+    public string Username { get; set; } = username;
+    public int Health { get; set; } = health;
+    public bool Host { get; set; } = host;
 
-	public Player(string connectionId, string username, int health = 5)
-	{
-		ConnectionId = connectionId;
-		Username = username;
-		Health = health;
-	}
-
-	public void TakeDamage(int damage = 1)
+    public void TakeDamage(int damage = 1)
 	{
 		Health -= damage;
 	}
