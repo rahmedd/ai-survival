@@ -48,7 +48,7 @@ public class GameHub : Hub
 		// 	);
 		// }
 
-		await _roomService.CreateOrJoinRoom(Context.ConnectionId, username, groupName);
+		await _roomService.CreateOrJoinRoom(Context.ConnectionId, groupName, username);
 		await Groups.AddToGroupAsync(Context.ConnectionId, groupName); // automatically adds or creates event group
 		await Clients.Group(groupName).SendAsync("Send", $"{Context.ConnectionId} has joined the group {groupName}.");
 	}
