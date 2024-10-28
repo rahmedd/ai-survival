@@ -61,6 +61,6 @@ public class RoomService
 		await db.SetRemoveAsync($"{roomKey}:players", connectionId);
 
 		var playerKey = $"player:{connectionId}";
-		await db.KeyDeleteAsync(connectionId);
+		await db.KeyDeleteAsync(playerKey);
 	}
 }
