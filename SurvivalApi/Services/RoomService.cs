@@ -57,7 +57,7 @@ public class RoomService
 	{
 		var db = _redis.GetDatabase();
 
-		var roomKey = $"room:{groupName}";
+		var roomKey = $"room:{groupName}:players";
 		await db.SetRemoveAsync($"{roomKey}:players", connectionId);
 
 		var playerKey = $"player:{connectionId}";
