@@ -1,8 +1,8 @@
 
 using StackExchange.Redis;
 using Bogus;
-using SurvivalApi.Models;
 using api.Models;
+using SurvivalApi.Models;
 
 namespace api.Services;
 
@@ -13,6 +13,37 @@ public class RoomService
 	public RoomService(IConnectionMultiplexer redis)
 	{
 		_redis = redis;
+	}
+
+	public async Task<Room> GetRoom(string groupName)
+	{
+		var db = _redis.GetDatabase();
+		var players = await db.SetMembersAsync($"room:{groupName}:players");
+		var playerList = players.Select(p => p.ToString()).ToList();
+
+
+		var room = new Room(groupName);
+		var allPlayers = new List<Player>();
+		foreach (var playerId in playerList)
+		{
+			var playerData = await db.HashGetAllAsync($"player:{playerId}");
+			var playerDict = playerData.ToDictionary(
+				entry => entry.Name.ToString(),
+				entry => entry.Value.ToString()
+			);
+
+			var player = new Player(
+				playerDict["id"],
+				playerDict["username"],
+				playerDict["roomId"],
+				int.Parse(playerDict["health"]),
+				int.Parse(playerDict["host"]) != 0
+			);
+
+			room.Players.Add(player);
+		}
+
+		return room;
 	}
 
 	public async Task CreateOrJoinRoom(string connectionId, string groupName, string username)

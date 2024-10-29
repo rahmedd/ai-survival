@@ -16,6 +16,10 @@ signalr.on('Send', message => {
 	console.log(`Send: ${JSON.stringify(message)}`)
 })
 
+signalr.on('JSON-room', message => {
+	console.log(JSON.parse(message))
+})
+
 async function send() {
 	console.log('trying to send')
 	try {
