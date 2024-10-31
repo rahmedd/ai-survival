@@ -82,10 +82,21 @@ public class GameHub : Hub
 		}
 	}
 
-	public override Task OnDisconnectedAsync(Exception? ex)
+	public override async Task OnDisconnectedAsync(Exception? ex)
 	{
-		_roomService.RemoveFromRoom(Context.ConnectionId);
+		var player = await _roomService.GetPlayer(Context.ConnectionId);
+		await _roomService.RemoveFromRoom(Context.ConnectionId);
 
-		return base.OnDisconnectedAsync(ex);
+		if (player.RoomId == null)
+		{
+			return;
+		}
+		
+		Room room = await _roomService.GetRoom(player.RoomId!);
+		var roomJson = System.Text.Json.JsonSerializer.Serialize(room);
+		await Clients.Group(player.RoomId).SendAsync("JSON-room", roomJson);
+
+		// return base.OnDisconnectedAsync(ex);
+		return;
 	}
 }
