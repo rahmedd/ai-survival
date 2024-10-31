@@ -84,19 +84,7 @@ public class GameHub : Hub
 
 	public override Task OnDisconnectedAsync(Exception? ex)
 	{
-		foreach (var item in Context.Items)
-		{
-			List<Player>? room = item.Value as List<Player>;
-			if (room != null)
-			{
-				Player? player = room.First(p => p.Id == Context.ConnectionId);
-				if (player != null)
-				{
-					room.Remove(player);
-					Clients.Group((string)item.Key).SendAsync("Send", $"{Context.ConnectionId} has left the group {item.Key}.");
-				}
-			}
-		}
+		_roomService.RemoveFromRoom(Context.ConnectionId);
 
 		return base.OnDisconnectedAsync(ex);
 	}

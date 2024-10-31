@@ -23,22 +23,10 @@ public class RoomService
 
 
 		var room = new Room(groupName);
-		var allPlayers = new List<Player>();
 		foreach (var playerId in playerList)
 		{
 			var playerData = await db.HashGetAllAsync($"player:{playerId}");
-			var playerDict = playerData.ToDictionary(
-				entry => entry.Name.ToString(),
-				entry => entry.Value.ToString()
-			);
-
-			var player = new Player(
-				playerDict["id"],
-				playerDict["username"],
-				playerDict["roomId"],
-				int.Parse(playerDict["health"]),
-				int.Parse(playerDict["host"]) != 0
-			);
+			var player = MapPlayerDataToPlayer(playerData);
 
 			room.Players.Add(player);
 		}
@@ -70,28 +58,76 @@ public class RoomService
 			await RemoveFromRoom(connectionId, existingPlayerRoomString);
 		}
 
-		var roomKey = $"room:{groupName}";
-		await db.SetAddAsync($"{roomKey}:players", connectionId);
+		await db.SetAddAsync($"room:{groupName}:players", connectionId);
 
-		var playerKey = $"player:{connectionId}";
-		await db.HashSetAsync(playerKey,
+		await db.HashSetAsync($"player:{connectionId}",
         [
 			new HashEntry("id", connectionId),
 			new HashEntry("username", username),
-			new HashEntry("roomId", roomKey),
+			new HashEntry("roomId", groupName),
 			new HashEntry("health", 5),
 			new HashEntry("host", host),
 		]);
 	}
 
-	public async Task RemoveFromRoom(string connectionId, string groupName)
+	public async Task<Player> GetPlayer(string connectionId)
+	{
+		var db = _redis.GetDatabase();
+		var playerData = await db.HashGetAllAsync($"player:{connectionId}");
+		var player = MapPlayerDataToPlayer(playerData);
+
+		return player;
+	}
+
+	// public async Task RemoveFromRoom(string connectionId)
+	// {
+	// 	var db = _redis.GetDatabase();
+
+	// 	var player = await GetPlayer(connectionId);
+	// 	if (player.RoomId == null)
+	// 	{
+	// 		return;
+	// 	}
+
+	// 	await db.SetRemoveAsync($"room:{player.RoomId}:players", connectionId);
+
+	// 	var playerKey = $"player:{connectionId}";
+	// 	await db.KeyDeleteAsync(playerKey);
+	// }
+
+	public async Task RemoveFromRoom(string connectionId, string? groupName = null)
 	{
 		var db = _redis.GetDatabase();
 
-		var roomKey = $"room:{groupName}:players";
-		await db.SetRemoveAsync($"{roomKey}:players", connectionId);
+		if (groupName == null)
+		{
+			var player = await GetPlayer(connectionId);
+			groupName = player.RoomId;
+			if (player.RoomId == null)
+			{
+				return;
+			}
+		}
 
-		var playerKey = $"player:{connectionId}";
-		await db.KeyDeleteAsync(playerKey);
+		await db.SetRemoveAsync($"room:{groupName}:players", connectionId);
+		await db.KeyDeleteAsync($"player:{connectionId}");
+	}
+
+	public Player MapPlayerDataToPlayer(HashEntry[] data)
+	{
+		var playerDict = data.ToDictionary(
+			entry => entry.Name.ToString(),
+			entry => entry.Value.ToString()
+		);
+
+		var player = new Player(
+			playerDict["id"],
+			playerDict["username"],
+			playerDict["roomId"],
+			int.Parse(playerDict["health"]),
+			int.Parse(playerDict["host"]) != 0
+		);
+
+		return player;
 	}
 }
