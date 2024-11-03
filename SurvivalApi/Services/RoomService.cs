@@ -58,8 +58,10 @@ public class RoomService
 			await RemoveFromRoom(connectionId, existingPlayerRoomString);
 		}
 
-		await db.SetAddAsync($"room:{groupName}:players", connectionId);
+		await db.SetAddAsync($"room:{groupName}:players", connectionId); // create room
+		await db.StringSetAsync($"room:{groupName}:timer", -1); // add gamer timer
 
+		// add player to room
 		await db.HashSetAsync($"player:{connectionId}",
         [
 			new HashEntry("id", connectionId),
@@ -70,30 +72,19 @@ public class RoomService
 		]);
 	}
 
-	public async Task<Player> GetPlayer(string connectionId)
+	public async Task<Player?> GetPlayer(string connectionId)
 	{
 		var db = _redis.GetDatabase();
 		var playerData = await db.HashGetAllAsync($"player:{connectionId}");
+		if (playerData.Length == 0)
+		{
+			return null;
+		}
+
 		var player = MapPlayerDataToPlayer(playerData);
 
 		return player;
 	}
-
-	// public async Task RemoveFromRoom(string connectionId)
-	// {
-	// 	var db = _redis.GetDatabase();
-
-	// 	var player = await GetPlayer(connectionId);
-	// 	if (player.RoomId == null)
-	// 	{
-	// 		return;
-	// 	}
-
-	// 	await db.SetRemoveAsync($"room:{player.RoomId}:players", connectionId);
-
-	// 	var playerKey = $"player:{connectionId}";
-	// 	await db.KeyDeleteAsync(playerKey);
-	// }
 
 	public async Task RemoveFromRoom(string connectionId, string? groupName = null)
 	{
@@ -102,15 +93,38 @@ public class RoomService
 		if (groupName == null)
 		{
 			var player = await GetPlayer(connectionId);
-			groupName = player.RoomId;
-			if (player.RoomId == null)
+			if (player == null || player.RoomId == null)
 			{
 				return;
 			}
+
+			groupName = player.RoomId;
 		}
 
 		await db.SetRemoveAsync($"room:{groupName}:players", connectionId);
 		await db.KeyDeleteAsync($"player:{connectionId}");
+	}
+
+	public async Task SetRoomTimer(string groupName, int seconds)
+	{
+		var db = _redis.GetDatabase();
+		var expirationTime = DateTime.UtcNow.AddSeconds(seconds);
+		await db.StringSetAsync($"room:{groupName}:timer", expirationTime.ToString());
+	}
+
+	public async Task<DateTime> GetRoomTimer(string groupName)
+	{
+		var db = _redis.GetDatabase();
+		var timer = await db.StringGetAsync($"room:{groupName}:timer");
+
+		if (DateTime.TryParse(timer, out var expirationTime))
+		{
+			return expirationTime;
+		}
+		else
+		{
+			throw new Exception("Invalid timer format");
+		}
 	}
 
 	public Player MapPlayerDataToPlayer(HashEntry[] data)

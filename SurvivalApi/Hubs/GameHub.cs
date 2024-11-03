@@ -87,16 +87,65 @@ public class GameHub : Hub
 		var player = await _roomService.GetPlayer(Context.ConnectionId);
 		await _roomService.RemoveFromRoom(Context.ConnectionId);
 
-		if (player.RoomId == null)
+		if (player == null ||  player.RoomId == null)
 		{
 			return;
 		}
 		
-		Room room = await _roomService.GetRoom(player.RoomId!);
+		Room room = await _roomService.GetRoom(player.RoomId);
 		var roomJson = System.Text.Json.JsonSerializer.Serialize(room);
 		await Clients.Group(player.RoomId).SendAsync("JSON-room", roomJson);
 
 		// return base.OnDisconnectedAsync(ex);
 		return;
+	}
+
+	public async Task StartGameLoop(int gameLength)
+	{
+		var startedAt = DateTime.UtcNow;
+		var killAt = startedAt.AddHours(1); // max time
+		// var gameLength = 60; // seconds
+
+		var player = await _roomService.GetPlayer(Context.ConnectionId);
+		if (player == null || !player.Host || player.RoomId == null || player.RoomId == "")
+		{
+			return;
+		}
+
+		await _roomService.SetRoomTimer(player.RoomId, gameLength);
+
+		var ret = new
+		{
+			gameLength = gameLength,
+			expirationTime = await _roomService.GetRoomTimer(player.RoomId)
+		};
+		await Clients.Group(player.RoomId).SendAsync("JSON-timer-start", ret);
+
+		while (true)
+		{
+			// if job runs for too long, break
+			if (killAt < DateTime.UtcNow)
+			{
+				break;
+			}
+
+			await Task.Delay(1000); // poll every second
+
+			var expirationTime = await _roomService.GetRoomTimer(player.RoomId!);
+			if (expirationTime < DateTime.UtcNow)
+			{
+				await Clients.Group(player.RoomId).SendAsync("JSON-timer-end", "ENDED");
+				break;
+			}
+
+			var room = await _roomService.GetRoom(player.RoomId);
+			var roomJson = System.Text.Json.JsonSerializer.Serialize(room);
+			await Clients.Group(player.RoomId).SendAsync("JSON-room", roomJson);
+		}
+	}
+
+	public async Task InterruptGameLoop()
+	{
+		await Clients.All.SendAsync("GameLoop", "Game loop interrupted.");
 	}
 }

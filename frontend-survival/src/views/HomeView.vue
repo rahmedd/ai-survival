@@ -20,6 +20,14 @@ signalr.on('JSON-room', message => {
 	console.log(JSON.parse(message))
 })
 
+signalr.on('JSON-timer-start', message => {
+	console.log(message)
+})
+
+signalr.on('JSON-timer-end', message => {
+	console.log(message)
+})
+
 async function send() {
 	console.log('trying to send')
 	try {
@@ -63,6 +71,17 @@ async function joinGame() {
 	}
 }
 
+async function startGame() {
+	try {
+		const res = await signalr.invoke(
+			'startGameLoop',
+			5,
+		)
+	}
+	catch (ex) {
+		console.log(ex)
+	}
+}
 
 // DEV: REMOVE THIS
 async function getRoom() {
@@ -91,8 +110,9 @@ async function getRoom() {
 		<div class="btn-container">
 			<button @click="send">send msg</button>
 			<button @click="getRoom">Get</button>
-			<button @click="createGame">Create</button>
-			<button @click="joinGame">Join</button>
+			<button @click="createGame">Create/Join</button>
+			<!-- <button @click="joinGame">Join</button> -->
+			<button @click="startGame">Start game</button>
 		</div>
 	</div>
 </template>
