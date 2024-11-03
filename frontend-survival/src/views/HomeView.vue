@@ -75,7 +75,18 @@ async function startGame() {
 	try {
 		const res = await signalr.invoke(
 			'startGameLoop',
-			5,
+			10,
+		)
+	}
+	catch (ex) {
+		console.log(ex)
+	}
+}
+
+async function stopGame() {
+	try {
+		const res = await signalr.invoke(
+			'stopGameLoop',
 		)
 	}
 	catch (ex) {
@@ -113,6 +124,7 @@ async function getRoom() {
 			<button @click="createGame">Create/Join</button>
 			<!-- <button @click="joinGame">Join</button> -->
 			<button @click="startGame">Start game</button>
+			<button @click="stopGame">Stop game</button>
 		</div>
 	</div>
 </template>

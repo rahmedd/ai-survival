@@ -144,8 +144,15 @@ public class GameHub : Hub
 		}
 	}
 
-	public async Task InterruptGameLoop()
+	public async Task StopGameLoop()
 	{
-		await Clients.All.SendAsync("GameLoop", "Game loop interrupted.");
+		var player = await _roomService.GetPlayer(Context.ConnectionId);
+		if (player == null || !player.Host || player.RoomId == null || player.RoomId == "")
+		{
+			return;
+		}
+
+		await _roomService.SetRoomTimer(player.RoomId, -9999);
+		Console.WriteLine("Stopping game loop.");
 	}
 }
