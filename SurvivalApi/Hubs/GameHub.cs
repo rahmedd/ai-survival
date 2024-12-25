@@ -3,18 +3,22 @@ using api.Models;
 using api.Services;
 using Bogus;
 using SurvivalApi.Models;
+using Quartz;
+using SurvivalApi.Jobs;
 
 namespace api.Hubs;
 
 public class GameHub : Hub
 {
 	private readonly RoomService _roomService;
+	private readonly ISchedulerFactory _schedulerFactory;
 
-	public GameHub(RoomService roomService)
+	public GameHub(RoomService roomService, ISchedulerFactory schedulerFactory)
 	{
 		_roomService = roomService;
+		_schedulerFactory = schedulerFactory;
 	}
-
+	
 	public async Task NewMessage(long username, string message) =>
 		await Clients.All.SendAsync("messageReceived", username, message);
 
@@ -102,10 +106,6 @@ public class GameHub : Hub
 
 	public async Task StartGameLoop(int gameLength)
 	{
-		var startedAt = DateTime.UtcNow;
-		var killAt = startedAt.AddHours(1); // max time
-		// var gameLength = 60; // seconds
-
 		var player = await _roomService.GetPlayer(Context.ConnectionId);
 		if (player == null || !player.Host || player.RoomId == null || player.RoomId == "")
 		{
@@ -116,32 +116,25 @@ public class GameHub : Hub
 
 		var ret = new
 		{
-			gameLength = gameLength,
+			gameLength,
 			expirationTime = await _roomService.GetRoomTimer(player.RoomId)
 		};
 		await Clients.Group(player.RoomId).SendAsync("JSON-timer-start", ret);
 
-		while (true)
-		{
-			// if job runs for too long, break
-			if (killAt < DateTime.UtcNow)
-			{
-				break;
-			}
+		var _scheduler = await _schedulerFactory.GetScheduler();
+		await _scheduler.Start();
 
-			await Task.Delay(1000); // poll every second
+		var job = JobBuilder.Create<EndGameJob>()
+			.WithIdentity($"endGame-{player.RoomId}", "endGameGroup")
+			.UsingJobData("roomId", player.RoomId)
+			.Build();
 
-			var expirationTime = await _roomService.GetRoomTimer(player.RoomId!);
-			if (expirationTime < DateTime.UtcNow)
-			{
-				await Clients.Group(player.RoomId).SendAsync("JSON-timer-end", "ENDED");
-				break;
-			}
+		var trigger = TriggerBuilder.Create()
+			.WithIdentity($"endGameTrigger-{player.RoomId}", "endGameGroup")
+			.StartAt(DateBuilder.FutureDate(gameLength, IntervalUnit.Second))
+			.Build();
 
-			var room = await _roomService.GetRoom(player.RoomId);
-			var roomJson = System.Text.Json.JsonSerializer.Serialize(room);
-			await Clients.Group(player.RoomId).SendAsync("JSON-room", roomJson);
-		}
+		await _scheduler.ScheduleJob(job, trigger);
 	}
 
 	public async Task StopGameLoop()
