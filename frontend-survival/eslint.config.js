@@ -14,7 +14,7 @@ export default [
 		rules: {
 			// "@typescript-eslint/indent": ["error", "tab"],
 			'@stylistic/ts/indent': ['error', 'tab'],
-			'@stylistic/ts/quotes': ['error', 'single', { 'allowTemplateLiterals': true, 'avoidEscape': true }],
+			// '@stylistic/ts/quotes': ['error', 'single', { 'allowTemplateLiterals': true, 'avoidEscape': true }],
 			'@stylistic/ts/brace-style': ['error', 'stroustrup'],
 		},
 	},
