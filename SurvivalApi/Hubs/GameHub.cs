@@ -3,18 +3,22 @@ using api.Models;
 using api.Services;
 using Bogus;
 using SurvivalApi.Models;
+using Quartz;
+using SurvivalApi.Jobs;
 
 namespace api.Hubs;
 
 public class GameHub : Hub
 {
 	private readonly RoomService _roomService;
+	private readonly ISchedulerFactory _schedulerFactory;
 
-	public GameHub(RoomService roomService)
+	public GameHub(RoomService roomService, ISchedulerFactory schedulerFactory)
 	{
 		_roomService = roomService;
+		_schedulerFactory = schedulerFactory;
 	}
-
+	
 	public async Task NewMessage(long username, string message) =>
 		await Clients.All.SendAsync("messageReceived", username, message);
 
@@ -51,6 +55,10 @@ public class GameHub : Hub
 		await _roomService.CreateOrJoinRoom(Context.ConnectionId, groupName, username);
 		await Groups.AddToGroupAsync(Context.ConnectionId, groupName); // automatically adds or creates event group
 		await Clients.Group(groupName).SendAsync("Send", $"{Context.ConnectionId} has joined the group {groupName}.");
+
+		Room room = await _roomService.GetRoom(groupName);
+		var roomJson = System.Text.Json.JsonSerializer.Serialize(room);
+		await Clients.Group(groupName).SendAsync("JSON-room", roomJson);
 	}
 
 	public async Task RemoveFromGroup(string groupName)
@@ -78,22 +86,66 @@ public class GameHub : Hub
 		}
 	}
 
-	public override Task OnDisconnectedAsync(Exception? ex)
+	public override async Task OnDisconnectedAsync(Exception? ex)
 	{
-		foreach (var item in Context.Items)
+		var player = await _roomService.GetPlayer(Context.ConnectionId);
+		await _roomService.RemoveFromRoom(Context.ConnectionId);
+
+		if (player == null ||  player.RoomId == null)
 		{
-			List<Player>? room = item.Value as List<Player>;
-			if (room != null)
-			{
-				Player? player = room.First(p => p.Id == Context.ConnectionId);
-				if (player != null)
-				{
-					room.Remove(player);
-					Clients.Group((string)item.Key).SendAsync("Send", $"{Context.ConnectionId} has left the group {item.Key}.");
-				}
-			}
+			return;
+		}
+		
+		Room room = await _roomService.GetRoom(player.RoomId);
+		var roomJson = System.Text.Json.JsonSerializer.Serialize(room);
+		await Clients.Group(player.RoomId).SendAsync("JSON-room", roomJson);
+
+		// return base.OnDisconnectedAsync(ex);
+		return;
+	}
+
+	public async Task StartGameLoop(int gameLength)
+	{
+		var player = await _roomService.GetPlayer(Context.ConnectionId);
+		if (player == null || !player.Host || player.RoomId == null || player.RoomId == "")
+		{
+			return;
 		}
 
-		return base.OnDisconnectedAsync(ex);
+		await _roomService.SetRoomTimer(player.RoomId, gameLength);
+
+		var ret = new
+		{
+			gameLength,
+			expirationTime = await _roomService.GetRoomTimer(player.RoomId)
+		};
+		await Clients.Group(player.RoomId).SendAsync("JSON-timer-start", ret);
+
+		var _scheduler = await _schedulerFactory.GetScheduler();
+		await _scheduler.Start();
+
+		var job = JobBuilder.Create<EndGameJob>()
+			.WithIdentity($"endGame-{player.RoomId}", "endGameGroup")
+			.UsingJobData("roomId", player.RoomId)
+			.Build();
+
+		var trigger = TriggerBuilder.Create()
+			.WithIdentity($"endGameTrigger-{player.RoomId}", "endGameGroup")
+			.StartAt(DateBuilder.FutureDate(gameLength, IntervalUnit.Second))
+			.Build();
+
+		await _scheduler.ScheduleJob(job, trigger);
+	}
+
+	public async Task StopGameLoop()
+	{
+		var player = await _roomService.GetPlayer(Context.ConnectionId);
+		if (player == null || !player.Host || player.RoomId == null || player.RoomId == "")
+		{
+			return;
+		}
+
+		await _roomService.SetRoomTimer(player.RoomId, -9999);
+		Console.WriteLine("Stopping game loop.");
 	}
 }

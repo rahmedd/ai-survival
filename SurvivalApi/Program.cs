@@ -1,6 +1,8 @@
 using StackExchange.Redis;
 using api.Hubs;
 using api.Services;
+using Quartz;
+using Quartz.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
@@ -24,6 +26,18 @@ builder.Services.AddAuthorization();
 // builder.Services.AddIdentity<AppUser, AppRole>()
 // 	.AddEntityFrameworkStores<AppDbContext>();
 
+builder.Services.AddQuartz(q =>
+{
+	// base Quartz scheduler, job and trigger configuration
+});
+
+// ASP.NET Core hosting
+builder.Services.AddQuartzServer(options =>
+{
+	// when shutting down we want jobs to complete gracefully
+	options.WaitForJobsToComplete = true;
+});
+
 builder.Services.AddScoped<RoomService>();
 // builder.Services.AddScoped<GeoService>();
 
@@ -41,18 +55,18 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapGet("/api/test/ollama", async () => { 
-    var ollamaService = new OllamaService();
-    await ollamaService.TestSendToOllama();
+	var ollamaService = new OllamaService();
+	await ollamaService.TestSendToOllama();
 });
 
 app.MapGet("/api/test/create", async () => { 
-    var ollamaService = new OllamaService();
-    await ollamaService.TestCreateScenario();
+	var ollamaService = new OllamaService();
+	await ollamaService.TestCreateScenario();
 });
 
 app.MapGet("/api/test/run", async () => { 
-    var ollamaService = new OllamaService();
-    await ollamaService.TestRunScenario();
+	var ollamaService = new OllamaService();
+	await ollamaService.TestRunScenario();
 });
 
 app.MapControllers();

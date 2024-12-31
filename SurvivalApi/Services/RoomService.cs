@@ -1,8 +1,8 @@
 
 using StackExchange.Redis;
 using Bogus;
-using SurvivalApi.Models;
 using api.Models;
+using SurvivalApi.Models;
 
 namespace api.Services;
 
@@ -15,45 +15,133 @@ public class RoomService
 		_redis = redis;
 	}
 
+	public async Task<Room> GetRoom(string groupName)
+	{
+		var db = _redis.GetDatabase();
+		var players = await db.SetMembersAsync($"room:{groupName}:players");
+		var playerList = players.Select(p => p.ToString()).ToList();
+
+
+		var room = new Room(groupName);
+		foreach (var playerId in playerList)
+		{
+			var playerData = await db.HashGetAllAsync($"player:{playerId}");
+			var player = MapPlayerDataToPlayer(playerData);
+
+			room.Players.Add(player);
+		}
+
+		return room;
+	}
+
 	public async Task CreateOrJoinRoom(string connectionId, string groupName, string username)
 	{
 		var db = _redis.GetDatabase();
 
+		// var playerExists = await db.KeyExistsAsync($"player:{connectionId}");
 		var gameExists = await db.KeyExistsAsync($"room:{groupName}");
 		var playersExist = await db.SetLengthAsync($"room:{groupName}:players") > 0;
 		var host = !gameExists && !playersExist;
 		
-		// if goup doesn't exist
-		if (host)
+		if (groupName == "" || groupName.Length < 6)
 		{
-			if (groupName == "" || groupName.Length < 6)
-			{
-				var faker = new Faker();
-				groupName = faker.Random.Words(4);
-			}
+			var faker = new Faker();
+			groupName = faker.Random.Words(4);
 		}
 
-		var roomKey = $"room:{groupName}";
-		await db.SetAddAsync($"{roomKey}:players", connectionId);
+		// rmeove from existing room and delete player
+		var existingPlayerRoom = await db.HashGetAsync($"player:{connectionId}", "roomId");
+		var existingPlayerRoomString = existingPlayerRoom.ToString();
+		// if (playerExists && existingPlayerRoomString != groupName)
+		if (existingPlayerRoomString.Length > 0)
+		{
+			await RemoveFromRoom(connectionId, existingPlayerRoomString);
+		}
 
-		var playerKey = $"player:{connectionId}";
-		await db.HashSetAsync(playerKey,
+		await db.SetAddAsync($"room:{groupName}:players", connectionId); // create room
+		await db.StringSetAsync($"room:{groupName}:timer", -1); // add gamer timer
+
+		// add player to room
+		await db.HashSetAsync($"player:{connectionId}",
         [
 			new HashEntry("id", connectionId),
 			new HashEntry("username", username),
+			new HashEntry("roomId", groupName),
 			new HashEntry("health", 5),
 			new HashEntry("host", host),
 		]);
 	}
 
-	public async Task RemoveFromRoom(string connectionId, string username, string groupName)
+	public async Task<Player?> GetPlayer(string connectionId)
+	{
+		var db = _redis.GetDatabase();
+		var playerData = await db.HashGetAllAsync($"player:{connectionId}");
+		if (playerData.Length == 0)
+		{
+			return null;
+		}
+
+		var player = MapPlayerDataToPlayer(playerData);
+
+		return player;
+	}
+
+	public async Task RemoveFromRoom(string connectionId, string? groupName = null)
 	{
 		var db = _redis.GetDatabase();
 
-		var roomKey = $"room:{groupName}";
-		await db.SetRemoveAsync($"{roomKey}:players", connectionId);
+		if (groupName == null)
+		{
+			var player = await GetPlayer(connectionId);
+			if (player == null || player.RoomId == null)
+			{
+				return;
+			}
 
-		var playerKey = $"player:{connectionId}";
-		await db.KeyDeleteAsync(connectionId);
+			groupName = player.RoomId;
+		}
+
+		await db.SetRemoveAsync($"room:{groupName}:players", connectionId);
+		await db.KeyDeleteAsync($"player:{connectionId}");
+	}
+
+	public async Task SetRoomTimer(string groupName, int seconds)
+	{
+		var db = _redis.GetDatabase();
+		var expirationTime = DateTime.UtcNow.AddSeconds(seconds);
+		await db.StringSetAsync($"room:{groupName}:timer", expirationTime.ToString());
+	}
+
+	public async Task<DateTime> GetRoomTimer(string groupName)
+	{
+		var db = _redis.GetDatabase();
+		var timer = await db.StringGetAsync($"room:{groupName}:timer");
+
+		if (DateTime.TryParse(timer, out var expirationTime))
+		{
+			return expirationTime;
+		}
+		else
+		{
+			throw new Exception("Invalid timer format");
+		}
+	}
+
+	public Player MapPlayerDataToPlayer(HashEntry[] data)
+	{
+		var playerDict = data.ToDictionary(
+			entry => entry.Name.ToString(),
+			entry => entry.Value.ToString()
+		);
+
+		var player = new Player(
+			playerDict["id"],
+			playerDict["username"],
+			playerDict["roomId"],
+			int.Parse(playerDict["health"]),
+			int.Parse(playerDict["host"]) != 0
+		);
+
+		return player;
 	}
 }
