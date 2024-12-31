@@ -1,6 +1,5 @@
 using StackExchange.Redis;
 using api.Hubs;
-using api.Controllers;
 using api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,7 +24,7 @@ builder.Services.AddAuthorization();
 // builder.Services.AddIdentity<AppUser, AppRole>()
 // 	.AddEntityFrameworkStores<AppDbContext>();
 
-// builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<RoomService>();
 // builder.Services.AddScoped<GeoService>();
 
 var app = builder.Build();
