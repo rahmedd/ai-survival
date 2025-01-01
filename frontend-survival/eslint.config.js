@@ -1,21 +1,24 @@
-import pluginVue from 'eslint-plugin-vue';
-import vueTsEslintConfig from '@vue/eslint-config-typescript';
-import pluginVitest from '@vitest/eslint-plugin';
-import pluginPlaywright from 'eslint-plugin-playwright';
-import stylisticTs from '@stylistic/eslint-plugin-ts';
-// import parserTs from "@typescript-eslint/parser";
+import pluginVue from 'eslint-plugin-vue'
+import vueTsEslintConfig from '@vue/eslint-config-typescript'
+import pluginVitest from '@vitest/eslint-plugin'
+import pluginPlaywright from 'eslint-plugin-playwright'
+import stylistic from '@stylistic/eslint-plugin'
 
 export default [
 	{
 		plugins: {
-			'@stylistic/ts': stylisticTs,
+			'@stylistic': stylistic,
 		},
-		// parser: parserTs,
 		rules: {
-			// "@typescript-eslint/indent": ["error", "tab"],
-			'@stylistic/ts/indent': ['error', 'tab'],
-			// '@stylistic/ts/quotes': ['error', 'single', { 'allowTemplateLiterals': true, 'avoidEscape': true }],
-			'@stylistic/ts/brace-style': ['error', 'stroustrup'],
+			'vue/multi-word-component-names': 'off',
+			'vue/singleline-html-element-content-newline': 'off',
+			'vue/html-comment-indent': ['error', 'tab'],
+			'vue/script-indent': ['error', 'tab', { switchCase: 1 }],
+			'vue/html-indent': ['error', 'tab'],
+			'vue/max-attributes-per-line': ['error', { singleline: 3, multiline: { max: 1 } }],
+			'vue/attribute-hyphenation': ['error', 'never'],
+			'vue/v-on-event-hyphenation': ['error', 'never'],
+			'vue/camelcase': ['error', { properties: 'always' }]
 		},
 	},
 	{

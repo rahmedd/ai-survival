@@ -1,4 +1,6 @@
-import './assets/main.css'
+/* eslint-disable vue/no-reserved-component-names */
+/* eslint-disable vue/multi-word-component-names */
+import './styles/main.scss'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
@@ -8,17 +10,18 @@ import { HubConnectionBuilder } from '@microsoft/signalr'
 import App from './App.vue'
 import router from './router'
 
-import PrimeVue from 'primevue/config';
-import Aura from '@primevue/themes/aura';
-import Button from 'primevue/button';
-import InputText from 'primevue/inputtext';
-import FloatLabel from 'primevue/floatlabel';
-import Chip from 'primevue/chip';
-import Avatar from 'primevue/avatar';
-import ProgressBar from 'primevue/progressbar';
-import ProgressSpinner from "primevue/progressspinner";
-import Textarea from "primevue/textarea";
-import Card from "primevue/card";
+import PrimeVue from 'primevue/config'
+import Aura from '@primevue/themes/aura'
+import Button from 'primevue/button'
+import InputText from 'primevue/inputtext'
+import FloatLabel from 'primevue/floatlabel'
+import Chip from 'primevue/chip'
+import Avatar from 'primevue/avatar'
+import ProgressBar from 'primevue/progressbar'
+import ProgressSpinner from "primevue/progressspinner"
+import Textarea from "primevue/textarea"
+import Card from "primevue/card"
+import { updatePrimaryPalette } from '@primevue/themes'
 
 const connection = new HubConnectionBuilder().withUrl('/api/hub').build()
 
@@ -35,9 +38,32 @@ app.use(router)
 
 app.use(PrimeVue, {
 	theme: {
+		prefix: 'p',
 		preset: Aura,
-	},
-});
+		order: 'primevue',
+		options: {
+			darkModeSelector: false,
+			cssLayer: {
+				name: 'primevue',
+				order: 'tailwind-base, primevue, tailwind-utilities',
+			}
+		}
+	}
+})
+
+updatePrimaryPalette({
+	50: '{indigo.50}',
+	100: '{indigo.100}',
+	200: '{indigo.200}',
+	300: '{indigo.300}',
+	400: '{indigo.400}',
+	500: '{indigo.500}',
+	600: '{indigo.600}',
+	700: '{indigo.700}',
+	800: '{indigo.800}',
+	900: '{indigo.900}',
+	950: '{indigo.950}'
+})
 
 app.component('Button', Button)
 app.component('InputText', InputText)

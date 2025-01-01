@@ -14,10 +14,6 @@ signalr.on('Send', message => {
 const roomCode = ref('');
 const username = ref('');
 
-async function createGame() {
-	await joinGame()
-}
-
 signalr.on('JSON-room', message => {
 	console.log(JSON.parse(message))
 })
@@ -37,7 +33,7 @@ async function send() {
 
 		const res = await signalr.invoke(
 			'SendMessageToGroup',
-			roomName.value,
+			roomCode.value,
 			'this is my message to earth',
 		)
 
@@ -51,7 +47,7 @@ async function createGame() {
 	try {
 		const res = await signalr.invoke(
 			'createRoom',
-			roomName.value,
+			roomCode.value,
 			username.value,
 		)
 	}
@@ -64,7 +60,7 @@ async function joinGame() {
 	try {
 		const res = await signalr.invoke(
 			'joinRoom',
-			roomName.value,
+			roomCode.value,
 			username.value,
 		)
 	}
@@ -96,12 +92,11 @@ async function stopGame() {
 	}
 }
 
-// DEV: REMOVE THIS
 async function getRoom() {
 	try {
 		const res = await signalr.invoke(
 			'getRoom',
-			roomName.value,
+			roomCode.value,
 		)
 	}
 	catch (ex) {
@@ -109,40 +104,85 @@ async function getRoom() {
 	}
 }
 
-// TODO: REMOVE
 </script>
 
 <template>
-	<header>
-		<h1>Ai Danger Game</h1>
-		<Button label="Send Msg" @click="send"></Button>
-	</header>
-	<main>
-		<div>
-			<FloatLabel variant="on">
-				<InputText id="on_label" v-model="username" required />
-				<label for="on_label">Username</label>
-			</FloatLabel>
-			<FloatLabel variant="on">
-				<InputText id="on_label" v-model="roomCode" />
-				<label for="on_label">Room Code</label>
-			</FloatLabel>
-			<Button label="Create Game" @click="createGame"></Button>
-			<Button label="Join Game" @click="joinGame"></Button>
+	<div class="home-view">
+		<div class="hero-horizontal">
+			<div class="hero-vertical">
+				<h1>SignalR Game</h1>
+				<Card>
+					<template #content>
+						<div class="home-form">
+							<div class="home-fields">
+								<InputText v-model="roomCode" placeholder="Room Code" />
+								<InputText v-model="username" placeholder="Username" />
+							</div>
+							<div class="home-buttons">
+								<Button label="Create Game" @click="createGame" />
+								<span class="or"> or </span>
+								<Button label="Join Game" @click="joinGame" />
+							</div>					
+						</div>
+					</template>
+				</Card>
+			</div>
 		</div>
-		<a href="lobby">LobbyView</a>
-		<a href="prompt">PromptView</a>
-		<a href="answer">AnswerView</a>
-		<a href="judge">JudgeView</a>
-		<a href="leaderboard">LeaderboardView</a>
-	</main>
+	</div>
 </template>
 
 <style lang="scss" scoped>
-.btn-container {
-	button {
-		padding: 10px;
-		margin: 10px;
+.hero-horizontal {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin: 0 auto;
+
+	h1 {
+		font-size: 3.5rem;
+		background: -webkit-linear-gradient(#977ffd, #333);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		font-weight: bold;
 	}
 }
+
+.hero-vertical {
+	// display: flex;
+	// flex-direction: row;
+}
+
+.home-form {
+	display: flex;
+	flex-direction: column;
+	margin: 1rem 0;
+
+	> * {
+		margin: 0.5rem 0;
+	}
+}
+
+.home-fields {
+	display: flex;
+	flex-direction: column;
+	margin: 1rem 0 1rem 0;
+
+	> * {
+		margin: 0.5rem 0;
+	}
+}
+
+.home-buttons {
+	width: 100%;
+	display: flex;
+	justify-content: space-evenly;
+	align-items: center;
+}
+
+.or {
+	font-size: 1.25rem;
+	font-weight: bold;
+	color: var(--p-	text-color);
+}
+
 </style>
