@@ -1,18 +1,16 @@
 <script setup lang="ts">
 import { useSignalR } from '@dreamonkey/vue-signalr'
-import InputText from 'primevue/inputtext';
-import FloatLabel from 'primevue/floatlabel';
-import Button from 'primevue/button';
-import { ref } from 'vue';
+import InputText from 'primevue/inputtext'
+import Button from 'primevue/button'
+import { reactive, ref } from 'vue'
+import { valibotResolver } from '@primevue/forms/resolvers/valibot'
+import * as v from 'valibot'
 
 const signalr = useSignalR()
 
 signalr.on('Send', message => {
 	console.log(`Send: ${JSON.stringify(message)}`)
 })
-
-const roomCode = ref('');
-const username = ref('');
 
 signalr.on('JSON-room', message => {
 	console.log(JSON.parse(message))
@@ -25,6 +23,19 @@ signalr.on('JSON-timer-start', message => {
 signalr.on('JSON-timer-end', message => {
 	console.log(message)
 })
+
+const resolver = valibotResolver(
+	v.object({
+		roomCode: v.pipe(v.string(), v.minLength(5, 'Room code is required')),
+		nickname: v.pipe(v.string(), v.minLength(5, 'Nickname is required')),
+	})
+)
+
+const initialValues = reactive({
+	// roomCode: 'abc-123',
+	// nickname: 'bob',
+})
+
 
 async function send() {
 	console.log('trying to send')
@@ -113,17 +124,41 @@ async function getRoom() {
 				<h1>SignalR Game</h1>
 				<Card>
 					<template #content>
-						<div class="home-form">
-							<div class="home-fields">
-								<InputText v-model="roomCode" placeholder="Room Code" />
-								<InputText v-model="username" placeholder="Username" />
-							</div>
+						<Form
+							:initialValues
+							:resolver
+							@submit="onFormSubmit"
+						>
+							<FormField v-slot="$field" name="roomCode">
+								<label>Room code</label>
+								<InputText type="text" placeholder="Room code" />
+								<Message v-if="$field?.invalid"
+									severity="error"
+									size="small"
+									variant="simple"
+								>
+									{{ $field.error?.message }}
+								</Message>
+							</FormField>
+
+							<FormField v-slot="$field" name="nickname">
+								<label>Nickname</label>
+								<InputText type="text" placeholder="Nickname" />
+								<Message v-if="$field?.invalid"
+									severity="error"
+									size="small"
+									variant="simple"
+								>
+									{{ $field.error?.message }}
+								</Message>
+							</FormField>
+
 							<div class="home-buttons">
-								<Button label="Create Game" @click="createGame" />
-								<span class="or"> or </span>
-								<Button label="Join Game" @click="joinGame" />
-							</div>					
-						</div>
+								<Button type="submit" severity="secondary" label="Join" />
+								<div>&nbsp;</div>
+								<Button type="submit" severity="secondary" label="Create" />
+							</div>
+						</Form>
 					</template>
 				</Card>
 			</div>
@@ -152,30 +187,38 @@ async function getRoom() {
 	// flex-direction: row;
 }
 
-.home-form {
-	display: flex;
-	flex-direction: column;
-	margin: 1rem 0;
+// .home-form {
+// 	display: flex;
+// 	flex-direction: column;
+// 	margin: 1rem 0;
 
-	> * {
-		margin: 0.5rem 0;
-	}
+// 	> * {
+// 		margin: 0.5rem 0;
+// 	}
+// }
+
+// .home-fields {
+// 	display: flex;
+// 	flex-direction: column;
+// 	margin: 1rem 0 1rem 0;
+
+// 	> * {
+// 		margin: 0.5rem 0;
+// 	}
+// }
+
+input {
+	width: 100%;
 }
 
-.home-fields {
-	display: flex;
-	flex-direction: column;
-	margin: 1rem 0 1rem 0;
-
-	> * {
-		margin: 0.5rem 0;
-	}
+.p-button {
+	width: 100%;
 }
 
 .home-buttons {
 	width: 100%;
 	display: flex;
-	justify-content: space-evenly;
+	justify-content: space-between;
 	align-items: center;
 }
 

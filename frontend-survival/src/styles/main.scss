@@ -14,3 +14,23 @@ body {
 	margin: 0;
 	height: 100dvh;
 }
+
+.p-formfield {
+	height: 4rem;
+	margin-bottom: 1.5rem;
+
+	label {
+		// padding-left: var(--p-inputtext-padding-x);
+		font-size: 0.8rem;
+		color: var(--p-surface-500);
+	}
+
+	.p-message-content {
+		// padding-left: var(--p-inputtext-padding-x);
+		
+		.p-message-text	 {
+			font-weight: normal;
+			font-size: 0.8rem;
+		}
+	}
+}

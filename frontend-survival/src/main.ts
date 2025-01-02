@@ -1,5 +1,5 @@
 /* eslint-disable vue/no-reserved-component-names */
-/* eslint-disable vue/multi-word-component-names */
+
 import './styles/main.scss'
 
 import { createApp } from 'vue'
@@ -12,16 +12,18 @@ import router from './router'
 
 import PrimeVue from 'primevue/config'
 import Aura from '@primevue/themes/aura'
+import { Form, FormField } from '@primevue/forms'
+import { updatePrimaryPalette } from '@primevue/themes'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import FloatLabel from 'primevue/floatlabel'
 import Chip from 'primevue/chip'
 import Avatar from 'primevue/avatar'
 import ProgressBar from 'primevue/progressbar'
-import ProgressSpinner from "primevue/progressspinner"
-import Textarea from "primevue/textarea"
-import Card from "primevue/card"
-import { updatePrimaryPalette } from '@primevue/themes'
+import ProgressSpinner from 'primevue/progressspinner'
+import Textarea from 'primevue/textarea'
+import Card from 'primevue/card'
+import Message from 'primevue/message'
 
 const connection = new HubConnectionBuilder().withUrl('/api/hub').build()
 
@@ -33,7 +35,9 @@ app.use(VueSignalR, {
 		console.log('signalr conn failed.')
 	},
 })
+
 app.use(createPinia())
+
 app.use(router)
 
 app.use(PrimeVue, {
@@ -74,5 +78,8 @@ app.component('ProgressBar', ProgressBar)
 app.component('ProgressSpinner', ProgressSpinner)
 app.component('Textarea', Textarea)
 app.component('Card', Card)
+app.component('Message', Message)
+app.component('Form', Form)
+app.component('FormField', FormField)
 
 app.mount('#app')
