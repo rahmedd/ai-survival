@@ -3,11 +3,9 @@ import vueTsEslintConfig from '@vue/eslint-config-typescript'
 import pluginVitest from '@vitest/eslint-plugin'
 import pluginPlaywright from 'eslint-plugin-playwright'
 import stylistic from '@stylistic/eslint-plugin'
-import tseslint from '@typescript-eslint/eslint-plugin'
 
 export default [
 	{
-		...tseslint.configs['flat/recommended'],
 		plugins: {
 			'@stylistic': stylistic,
 		},
@@ -16,7 +14,6 @@ export default [
 			'@stylistic/quotes': ['error', 'single', { 'allowTemplateLiterals': true, 'avoidEscape': true }],
 			'@stylistic/brace-style': ['error', 'stroustrup'],
 			'@stylistic/semi': ['error', 'never'],
-			'@typescript-eslint/no-explicit-any': 'warn',
 		},
 	},
 	{
@@ -42,6 +39,7 @@ export default [
 			'vue/attribute-hyphenation': ['error', 'never'],
 			'vue/v-on-event-hyphenation': ['error', 'never'],
 			'vue/camelcase': ['error', { properties: 'always' }],
+			'@typescript-eslint/no-explicit-any': 'off',
 		}
 	},
 	{

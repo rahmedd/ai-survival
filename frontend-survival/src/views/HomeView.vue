@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import { useSignalR } from '@dreamonkey/vue-signalr'
 import InputText from 'primevue/inputtext'
+import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
-import { reactive, ref } from 'vue'
+import { reactive } from 'vue'
 import { valibotResolver } from '@primevue/forms/resolvers/valibot'
 import * as v from 'valibot'
+import type { FormSubmitEvent } from '@primevue/forms'
+import { useEagerValidation } from '@/composables/useEagerValidation'
 
+const toast = useToast()
 const signalr = useSignalR()
+const { getFieldFromDirtyMap, updateDirtyMap } = useEagerValidation()
 
 signalr.on('Send', message => {
 	console.log(`Send: ${JSON.stringify(message)}`)
@@ -26,16 +31,23 @@ signalr.on('JSON-timer-end', message => {
 
 const resolver = valibotResolver(
 	v.object({
-		roomCode: v.pipe(v.string(), v.minLength(5, 'Room code is required')),
-		nickname: v.pipe(v.string(), v.minLength(5, 'Nickname is required')),
+		nickname: v.pipe(v.string(), v.minLength(5, 'Minimum of 5 characters')),
+		roomCode: v.pipe(v.string(), v.minLength(5, 'Minimum of 5 characters')),
 	})
 )
 
 const initialValues = reactive({
-	// roomCode: 'abc-123',
 	// nickname: 'bob',
+	// roomCode: 'abc-123',
+	nickname: '',
+	roomCode: '',
 })
 
+async function onFormSubmit(e: FormSubmitEvent) {
+	if (e.valid) {
+		toast.add({ severity: 'success', summary: 'Form is submitted.', life: 3000 })
+	}
+}
 
 async function send() {
 	console.log('trying to send')
@@ -127,11 +139,13 @@ async function getRoom() {
 						<Form
 							:initialValues
 							:resolver
+							:validateOnValueUpdate="false"
+							:validateOnBlur="true"
 							@submit="onFormSubmit"
 						>
-							<FormField v-slot="$field" name="roomCode">
-								<label>Room code</label>
-								<InputText type="text" placeholder="Room code" />
+							<FormField v-slot="$field" name="nickname" :validateOnValueUpdate="getFieldFromDirtyMap(`nickname`)">
+								<label>Nickname</label>
+								<InputText type="text" placeholder="Nickname" @blur="updateDirtyMap($field)"/>
 								<Message v-if="$field?.invalid"
 									severity="error"
 									size="small"
@@ -141,9 +155,9 @@ async function getRoom() {
 								</Message>
 							</FormField>
 
-							<FormField v-slot="$field" name="nickname">
-								<label>Nickname</label>
-								<InputText type="text" placeholder="Nickname" />
+							<FormField v-slot="$field" name="roomCode" :validateOnValueUpdate="getFieldFromDirtyMap(`roomCode`)">
+								<label>Room code</label>
+								<InputText type="text" placeholder="Room code" />
 								<Message v-if="$field?.invalid"
 									severity="error"
 									size="small"

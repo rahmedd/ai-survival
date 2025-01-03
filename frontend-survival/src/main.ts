@@ -14,16 +14,21 @@ import PrimeVue from 'primevue/config'
 import Aura from '@primevue/themes/aura'
 import { Form, FormField } from '@primevue/forms'
 import { updatePrimaryPalette } from '@primevue/themes'
-import Button from 'primevue/button'
-import InputText from 'primevue/inputtext'
-import FloatLabel from 'primevue/floatlabel'
-import Chip from 'primevue/chip'
-import Avatar from 'primevue/avatar'
-import ProgressBar from 'primevue/progressbar'
-import ProgressSpinner from 'primevue/progressspinner'
-import Textarea from 'primevue/textarea'
-import Card from 'primevue/card'
-import Message from 'primevue/message'
+import ToastService from 'primevue/toastservice'
+import {
+	Button,
+	InputText,
+	FloatLabel,
+	Chip,
+	Avatar,
+	ProgressBar,
+	ProgressSpinner,
+	Textarea,
+	Card,
+	Message,
+	Toast
+} from 'primevue'
+
 
 const connection = new HubConnectionBuilder().withUrl('/api/hub').build()
 
@@ -55,6 +60,8 @@ app.use(PrimeVue, {
 	}
 })
 
+app.use(ToastService)
+
 updatePrimaryPalette({
 	50: '{indigo.50}',
 	100: '{indigo.100}',
@@ -81,5 +88,6 @@ app.component('Card', Card)
 app.component('Message', Message)
 app.component('Form', Form)
 app.component('FormField', FormField)
+app.component('Toast', Toast)
 
 app.mount('#app')
