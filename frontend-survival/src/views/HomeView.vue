@@ -6,8 +6,9 @@ import Button from 'primevue/button'
 import { reactive } from 'vue'
 import { valibotResolver } from '@primevue/forms/resolvers/valibot'
 import * as v from 'valibot'
-import type { FormSubmitEvent } from '@primevue/forms'
+import type { FormFieldState } from '@primevue/forms'
 import { useEagerValidation } from '@/composables/useEagerValidation'
+import type { GenericFormFieldState } from '@/types/GenericFormFieldState'
 
 const toast = useToast()
 const signalr = useSignalR()
@@ -29,25 +30,30 @@ signalr.on('JSON-timer-end', message => {
 	console.log(message)
 })
 
-const resolver = valibotResolver(
-	v.object({
-		nickname: v.pipe(v.string(), v.minLength(5, 'Minimum of 5 characters')),
-		roomCode: v.pipe(v.string(), v.minLength(5, 'Minimum of 5 characters')),
-	})
-)
+const homeSchema = 	v.object({
+	nickname: v.pipe(v.string(), v.minLength(5, 'Minimum of 5 characters')),
+	roomCode: v.pipe(v.string(), v.minLength(5, 'Minimum of 5 characters')),
+})
 
-const initialValues = reactive({
+const resolver = valibotResolver(homeSchema)
+
+type HomeForm = v.InferOutput<typeof homeSchema>
+type HomeFormState = GenericFormFieldState<HomeForm>
+
+const initialValues = reactive<HomeForm>({
 	// nickname: 'bob',
 	// roomCode: 'abc-123',
 	nickname: '',
 	roomCode: '',
 })
 
-async function onFormSubmit(e: FormSubmitEvent) {
-	if (e.valid) {
-		toast.add({ severity: 'success', summary: 'Form is submitted.', life: 3000 })
-	}
-}
+// async function onFormSubmit(e: FormSubmitEvent) {
+// 	console.log(e)
+// 	if (!e.valid) {
+// 		return
+// 	}
+// 	toast.add({ severity: 'success', summary: 'Form is submitted.', life: 3000 })
+// }
 
 async function send() {
 	console.log('trying to send')
@@ -66,12 +72,15 @@ async function send() {
 	}
 }
 
-async function createGame() {
+// { [K in HomeFormKeys]: FormFieldState } & { valid: boolean }
+async function createGame(e: HomeFormState) {
+	if (!e.valid) return
+
 	try {
 		const res = await signalr.invoke(
 			'createRoom',
-			roomCode.value,
-			username.value,
+			e.roomCode.value,
+			e.nickname.value,
 		)
 	}
 	catch (ex) {
@@ -79,12 +88,15 @@ async function createGame() {
 	}
 }
 
-async function joinGame() {
+// async function joinGame(e: { [key: string]: FormFieldState }) {
+async function joinGame(e: HomeFormState) {
+	if (!e.valid) return
+
 	try {
 		const res = await signalr.invoke(
 			'joinRoom',
-			roomCode.value,
-			username.value,
+			e.roomCode.value,
+			e.nickname.	value,
 		)
 	}
 	catch (ex) {
@@ -137,11 +149,11 @@ async function getRoom() {
 				<Card>
 					<template #content>
 						<Form
+							v-slot="$form"
 							:initialValues
 							:resolver
 							:validateOnValueUpdate="false"
 							:validateOnBlur="true"
-							@submit="onFormSubmit"
 						>
 							<FormField v-slot="$field" name="nickname" :validateOnValueUpdate="getFieldFromDirtyMap(`nickname`)">
 								<label>Nickname</label>
@@ -168,9 +180,15 @@ async function getRoom() {
 							</FormField>
 
 							<div class="home-buttons">
-								<Button type="submit" severity="secondary" label="Join" />
+								<Button type="submit"
+									severity="secondary"
+									label="Join"
+									@click="joinGame($form)" />
 								<div>&nbsp;</div>
-								<Button type="submit" severity="secondary" label="Create" />
+								<Button type="submit"
+									severity="secondary"
+									label="Create"
+									@click="createGame($form as any)" />
 							</div>
 						</Form>
 					</template>
