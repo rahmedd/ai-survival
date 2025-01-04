@@ -9,11 +9,98 @@ export const useRoom = defineStore('room', () => {
 		console.log(`Send: ${JSON.stringify(message)}`)
 	})
 
-	const count = ref(0)
-	const doubleCount = computed(() => count.value * 2)
-	function increment() {
-		count.value++
+	signalr.on('JSON-room', message => {
+		console.log(JSON.parse(message))
+	})
+
+	signalr.on('JSON-timer-start', message => {
+		console.log(message)
+	})
+
+	signalr.on('JSON-timer-end', message => {
+		console.log(message)
+	})
+
+	async function send() {
+		console.log('trying to send')
+		try {
+			const username = new Date().getTime()
+
+			const res = await signalr.invoke(
+				'SendMessageToGroup',
+				roomCode.value,
+				'this is my message to earth',
+			)
+
+		}
+		catch (ex) {
+			console.log(ex)
+		}
 	}
 
-	return { count, doubleCount, increment }
+	async function createGame(roomCode: string, nickname: string) {
+		try {
+			const res = await signalr.invoke(
+				'createRoom',
+				roomCode,
+				nickname,
+			)
+		}
+		catch (ex) {
+			console.log(ex)
+		}
+	}
+
+	async function joinGame(roomCode: string, nickname: string) {
+		try {
+			const res = await signalr.invoke(
+				'joinRoom',
+				roomCode,
+				nickname,
+			)
+		}
+		catch (ex) {
+			console.log(ex)
+		}
+	}
+
+	async function startGame() {
+		try {
+			const res = await signalr.invoke(
+				'startGameLoop',
+				10,
+			)
+		}
+		catch (ex) {
+			console.log(ex)
+		}
+	}
+
+	async function stopGame() {
+		try {
+			const res = await signalr.invoke(
+				'stopGameLoop',
+			)
+		}
+		catch (ex) {
+			console.log(ex)
+		}
+	}
+
+	async function getRoom() {
+		try {
+			const res = await signalr.invoke(
+				'getRoom',
+				roomCode.value,
+			)
+		}
+		catch (ex) {
+			console.log(ex)
+		}
+	}
+
+	return {
+		createGame,
+		joinGame,
+	}
 })

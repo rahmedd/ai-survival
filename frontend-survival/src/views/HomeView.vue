@@ -1,34 +1,15 @@
 <script setup lang="ts">
-import { useSignalR } from '@dreamonkey/vue-signalr'
 import InputText from 'primevue/inputtext'
-import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
 import { reactive } from 'vue'
 import { valibotResolver } from '@primevue/forms/resolvers/valibot'
 import * as v from 'valibot'
-import type { FormFieldState } from '@primevue/forms'
 import { useEagerValidation } from '@/composables/useEagerValidation'
 import type { GenericFormFieldState } from '@/types/GenericFormFieldState'
+import { useRoom } from '@/stores/room'
 
-const toast = useToast()
-const signalr = useSignalR()
 const { getFieldFromDirtyMap, updateDirtyMap } = useEagerValidation()
-
-signalr.on('Send', message => {
-	console.log(`Send: ${JSON.stringify(message)}`)
-})
-
-signalr.on('JSON-room', message => {
-	console.log(JSON.parse(message))
-})
-
-signalr.on('JSON-timer-start', message => {
-	console.log(message)
-})
-
-signalr.on('JSON-timer-end', message => {
-	console.log(message)
-})
+const { createGame, joinGame } = useRoom()
 
 const homeSchema = 	v.object({
 	nickname: v.pipe(v.string(), v.minLength(5, 'Minimum of 5 characters')),
@@ -47,96 +28,15 @@ const initialValues = reactive<HomeForm>({
 	roomCode: '',
 })
 
-// async function onFormSubmit(e: FormSubmitEvent) {
-// 	console.log(e)
-// 	if (!e.valid) {
-// 		return
-// 	}
-// 	toast.add({ severity: 'success', summary: 'Form is submitted.', life: 3000 })
-// }
-
-async function send() {
-	console.log('trying to send')
-	try {
-		const username = new Date().getTime()
-
-		const res = await signalr.invoke(
-			'SendMessageToGroup',
-			roomCode.value,
-			'this is my message to earth',
-		)
-
-	}
-	catch (ex) {
-		console.log(ex)
-	}
-}
-
-// { [K in HomeFormKeys]: FormFieldState } & { valid: boolean }
-async function createGame(e: HomeFormState) {
+async function callCreateGame(e: HomeFormState) {
+	debugger
 	if (!e.valid) return
-
-	try {
-		const res = await signalr.invoke(
-			'createRoom',
-			e.roomCode.value,
-			e.nickname.value,
-		)
-	}
-	catch (ex) {
-		console.log(ex)
-	}
+	await createGame(e.roomCode.value, e.nickname.value)
 }
 
-// async function joinGame(e: { [key: string]: FormFieldState }) {
-async function joinGame(e: HomeFormState) {
+async function callJoinGame(e: HomeFormState) {
 	if (!e.valid) return
-
-	try {
-		const res = await signalr.invoke(
-			'joinRoom',
-			e.roomCode.value,
-			e.nickname.	value,
-		)
-	}
-	catch (ex) {
-		console.log(ex)
-	}
-}
-
-async function startGame() {
-	try {
-		const res = await signalr.invoke(
-			'startGameLoop',
-			10,
-		)
-	}
-	catch (ex) {
-		console.log(ex)
-	}
-}
-
-async function stopGame() {
-	try {
-		const res = await signalr.invoke(
-			'stopGameLoop',
-		)
-	}
-	catch (ex) {
-		console.log(ex)
-	}
-}
-
-async function getRoom() {
-	try {
-		const res = await signalr.invoke(
-			'getRoom',
-			roomCode.value,
-		)
-	}
-	catch (ex) {
-		console.log(ex)
-	}
+	await joinGame(e.roomCode.value, e.nickname.value)
 }
 
 </script>
@@ -155,7 +55,11 @@ async function getRoom() {
 							:validateOnValueUpdate="false"
 							:validateOnBlur="true"
 						>
-							<FormField v-slot="$field" name="nickname" :validateOnValueUpdate="getFieldFromDirtyMap(`nickname`)">
+							<FormField
+								v-slot="$field"
+								name="nickname"
+								:validateOnValueUpdate="getFieldFromDirtyMap(`nickname`)"
+							>
 								<label>Nickname</label>
 								<InputText type="text" placeholder="Nickname" @blur="updateDirtyMap($field)"/>
 								<Message v-if="$field?.invalid"
@@ -167,7 +71,11 @@ async function getRoom() {
 								</Message>
 							</FormField>
 
-							<FormField v-slot="$field" name="roomCode" :validateOnValueUpdate="getFieldFromDirtyMap(`roomCode`)">
+							<FormField
+								v-slot="$field"
+								name="roomCode"
+								:validateOnValueUpdate="getFieldFromDirtyMap(`roomCode`)"
+							>
 								<label>Room code</label>
 								<InputText type="text" placeholder="Room code" />
 								<Message v-if="$field?.invalid"
@@ -183,12 +91,12 @@ async function getRoom() {
 								<Button type="submit"
 									severity="secondary"
 									label="Join"
-									@click="joinGame($form)" />
+									@click="callJoinGame($form as any)" />
 								<div>&nbsp;</div>
 								<Button type="submit"
 									severity="secondary"
 									label="Create"
-									@click="createGame($form as any)" />
+									@click="callCreateGame($form as any)" />
 							</div>
 						</Form>
 					</template>
