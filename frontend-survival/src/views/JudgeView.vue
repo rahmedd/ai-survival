@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { Player } from '@/models/player';
-import Chip from 'primevue/chip';
-import Avatar from 'primevue/avatar';
-import ProgressBar from 'primevue/progressbar';
-import ProgressSpinner from "primevue/progressspinner";
-import Card from "primevue/card";
-import { ref } from 'vue';
-import router from "@/router";
+import type { Player } from '@/models/player'
+import Chip from 'primevue/chip'
+import Avatar from 'primevue/avatar'
+import ProgressBar from 'primevue/progressbar'
+import ProgressSpinner from 'primevue/progressspinner'
+import Card from 'primevue/card'
+import { ref } from 'vue'
+import router from '@/router'
 
 const players = ref<Player[]>([
 	{
@@ -39,9 +39,9 @@ const players = ref<Player[]>([
 		Health: 5,
 		Host: false,
 	},
-]);
-const prompt = "A very spooky prompt"
-const answer = ref("sdjfsdjnfsjk")
+])
+const prompt = 'A very spooky prompt'
+const answer = ref('sdjfsdjnfsjk')
 
 
 const currentPlayer = ref(players.value[0])
@@ -50,7 +50,7 @@ const isHost = ref(currentPlayer.value.Host)
 function splitUsername(player: Player) {
 	return {
 		name: player.Username.split(':')[0],
-		emoji: player.Username.split(':')[1] || "",
+		emoji: player.Username.split(':')[1] || '',
 	}
 }
 
@@ -94,7 +94,11 @@ function allReady() {
 				<li v-for="player in players" :key="player.Id">
 					<Avatar :label="splitUsername(player).emoji" size="xlarge" />
 					<Chip :label="splitUsername(player).name" />
-					<ProgressSpinner style="width: 50px; height: 50px" strokeWidth="8" fill="transparent" animationDuration=".5s" aria-label="Custom ProgressSpinner" />
+					<ProgressSpinner style="width: 50px; height: 50px"
+						strokeWidth="8"
+						fill="transparent"
+						animationDuration=".5s"
+						aria-label="Custom ProgressSpinner" />
 				</li>
 			</ul>
 		</div>

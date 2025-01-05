@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import type { Player } from '@/models/player';
-import Chip from 'primevue/chip';
-import Avatar from 'primevue/avatar';
-import ProgressBar from 'primevue/progressbar';
-import ProgressSpinner from "primevue/progressspinner";
-import Textarea from "primevue/textarea";
-import FloatLabel from "primevue/floatlabel";
-import { ref, onMounted, onUpdated } from 'vue';
-import router from "@/router";
+import type { Player } from '@/models/player'
+import Chip from 'primevue/chip'
+import Avatar from 'primevue/avatar'
+import ProgressBar from 'primevue/progressbar'
+import ProgressSpinner from 'primevue/progressspinner'
+import Textarea from 'primevue/textarea'
+import FloatLabel from 'primevue/floatlabel'
+import { ref, onMounted, onUpdated } from 'vue'
+import router from '@/router'
 
 const players = ref<Player[]>([
 	{
@@ -40,9 +40,9 @@ const players = ref<Player[]>([
 		Health: 5,
 		Host: false,
 	},
-]);
-const prompt = "A very spooky prompt"
-const answer = ref("")
+])
+const prompt = 'A very spooky prompt'
+const answer = ref('')
 
 
 const currentPlayer = ref(players.value[0])
@@ -51,7 +51,7 @@ const isHost = ref(currentPlayer.value.Host)
 function splitUsername(player: Player) {
 	return {
 		name: player.Username.split(':')[0],
-		emoji: player.Username.split(':')[1] || "",
+		emoji: player.Username.split(':')[1] || '',
 	}
 }
 
@@ -60,7 +60,7 @@ const timeLeft = ref(60)
 
 function countDown() {
 	setInterval(() => {
-		timeLeft.value--;
+		timeLeft.value--
 	}, 1000)
 }
 
@@ -75,7 +75,7 @@ function submitAnswers() {
 }
 
 //TODO: Remove variable once solution is found
-const placeholder = ""
+const placeholder = ''
 </script>
 
 <template>
@@ -85,7 +85,11 @@ const placeholder = ""
 	<main>
 		<h1>{{prompt}}</h1>
 		<FloatLabel>
-			<Textarea id="over_label" v-model="answer" autoResize rows="5" cols="30" />
+			<Textarea id="over_label"
+				v-model="answer"
+				autoResize
+				rows="5"
+				cols="30" />
 			<label for="over_label">{{ currentUsername.name }} will try to: </label>
 		</FloatLabel>
 		<div>
@@ -97,7 +101,11 @@ const placeholder = ""
 				<li v-for="player in players" :key="player.Id">
 					<Avatar :label="splitUsername(player).emoji" size="xlarge" />
 					<Chip :label="splitUsername(player).name" />
-					<ProgressSpinner style="width: 50px; height: 50px" strokeWidth="8" fill="transparent" animationDuration=".5s" aria-label="Custom ProgressSpinner" />
+					<ProgressSpinner style="width: 50px; height: 50px"
+						strokeWidth="8"
+						fill="transparent"
+						animationDuration=".5s"
+						aria-label="Custom ProgressSpinner" />
 				</li>
 			</ul>
 		</div>

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { Player } from '@/models/player';
-import Chip from 'primevue/chip';
-import Avatar from 'primevue/avatar';
-import ProgressBar from 'primevue/progressbar';
-import { ref } from 'vue';
-import router from "@/router";
+import type { Player } from '@/models/player'
+import Chip from 'primevue/chip'
+import Avatar from 'primevue/avatar'
+import ProgressBar from 'primevue/progressbar'
+import { ref } from 'vue'
+import router from '@/router'
 
 const players = ref<Player[]>([
 	{
@@ -37,20 +37,20 @@ const players = ref<Player[]>([
 		Health: 5,
 		Host: false,
 	},
-]);
+])
 
 const currentPlayer = ref(players.value[0])
 const isHost = ref(currentPlayer.value.Host)
 
 // TODO: REMOVE
 function changeHost() {
-	isHost.value = !isHost.value;
+	isHost.value = !isHost.value
 }
 
 function splitUsername(player: Player) {
 	return {
 		name: player.Username.split(':')[0],
-		emoji: player.Username.split(':')[1] || "",
+		emoji: player.Username.split(':')[1] || '',
 	}
 }
 

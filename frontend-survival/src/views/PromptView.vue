@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { Player } from '@/models/player';
-import Chip from 'primevue/chip';
-import Avatar from 'primevue/avatar';
-import ProgressBar from 'primevue/progressbar';
-import ProgressSpinner from "primevue/progressspinner";
-import { ref } from 'vue';
-import router from "@/router";
+import type { Player } from '@/models/player'
+import Chip from 'primevue/chip'
+import Avatar from 'primevue/avatar'
+import ProgressBar from 'primevue/progressbar'
+import ProgressSpinner from 'primevue/progressspinner'
+import { ref } from 'vue'
+import router from '@/router'
 
 const players = ref<Player[]>([
 	{
@@ -38,20 +38,20 @@ const players = ref<Player[]>([
 		Health: 5,
 		Host: false,
 	},
-]);
+])
 
 const currentPlayer = ref(players.value[0])
 const isHost = ref(currentPlayer.value.Host)
 
 // TODO: REMOVE
 function changeHost() {
-	isHost.value = !isHost.value;
+	isHost.value = !isHost.value
 }
 
 function splitUsername(player: Player) {
 	return {
 		name: player.Username.split(':')[0],
-		emoji: player.Username.split(':')[1] || "",
+		emoji: player.Username.split(':')[1] || '',
 	}
 }
 
@@ -82,7 +82,11 @@ async function startGame() {
 				<li v-for="player in players" :key="player.Id">
 					<Avatar :label="splitUsername(player).emoji" size="xlarge" />
 					<Chip :label="splitUsername(player).name" />
-					<ProgressSpinner style="width: 50px; height: 50px" strokeWidth="8" fill="transparent" animationDuration=".5s" aria-label="Custom ProgressSpinner" />
+					<ProgressSpinner style="width: 50px; height: 50px"
+						strokeWidth="8"
+						fill="transparent"
+						animationDuration=".5s"
+						aria-label="Custom ProgressSpinner" />
 				</li>
 			</ul>
 		</div>
