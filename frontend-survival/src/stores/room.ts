@@ -2,15 +2,20 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { useSignalR } from '@dreamonkey/vue-signalr'
 
+import type { Room } from '@/types/Room'
+
 export const useRoom = defineStore('room', () => {
 	const signalr = useSignalR()
+	const roomState = ref<Room | null>(null)
 
 	signalr.on('Send', message => {
 		console.log(`Send: ${JSON.stringify(message)}`)
 	})
 
 	signalr.on('JSON-room', message => {
-		console.log(JSON.parse(message))
+		const res = JSON.parse(message)
+		console.log(res)
+		roomState.value = res
 	})
 
 	signalr.on('JSON-timer-start', message => {
@@ -45,8 +50,6 @@ export const useRoom = defineStore('room', () => {
 				nickname,
 				roomCode,
 			)
-
-			console.log(res)
 		}
 		catch (ex) {
 			console.log(ex)

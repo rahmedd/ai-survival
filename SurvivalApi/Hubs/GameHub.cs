@@ -56,16 +56,17 @@ public class GameHub : Hub
 		await Groups.AddToGroupAsync(Context.ConnectionId, groupName); // automatically adds or creates event group
 		await Clients.Group(groupName).SendAsync("Send", $"{Context.ConnectionId} has joined the group {groupName}.");
 
-		Room room = await _roomService.GetRoom(groupName);
-		var roomJson = System.Text.Json.JsonSerializer.Serialize(room);
+		var roomJson = await _roomService.GetRoomAsJson(groupName);
 		await Clients.Group(groupName).SendAsync("JSON-room", roomJson);
 	}
 
 	public async Task RemoveFromGroup(string groupName)
 	{
 		await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
-
 		await Clients.Group(groupName).SendAsync("Send", $"{Context.ConnectionId} has left the group {groupName}.");
+
+		var roomJson = await _roomService.GetRoomAsJson(groupName);
+		await Clients.Group(groupName).SendAsync("JSON-room", roomJson);
 	}
 
 	public Task SendPrivateMessage(string user, string message)

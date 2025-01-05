@@ -34,6 +34,12 @@ public class RoomService
 		return room;
 	}
 
+	public async Task<string> GetRoomAsJson(string groupName)
+	{
+		var room = await GetRoom(groupName);
+		return System.Text.Json.JsonSerializer.Serialize(room);
+	}
+
 	public async Task CreateOrJoinRoom(string connectionId, string groupName, string username)
 	{
 		var db = _redis.GetDatabase();
