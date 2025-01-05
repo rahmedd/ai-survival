@@ -26,7 +26,8 @@ import {
 	Textarea,
 	Card,
 	Message,
-	Toast
+	Toast,
+	SelectButton,
 } from 'primevue'
 
 
@@ -89,5 +90,6 @@ app.component('Message', Message)
 app.component('Form', Form)
 app.component('FormField', FormField)
 app.component('Toast', Toast)
+app.component('SelectButton', SelectButton)
 
 app.mount('#app')

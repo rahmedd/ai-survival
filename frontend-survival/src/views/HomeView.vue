@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 import { valibotResolver } from '@primevue/forms/resolvers/valibot'
 import * as v from 'valibot'
 import { useEagerValidation } from '@/composables/useEagerValidation'
-import type { GenericFormFieldState } from '@/types/GenericFormFieldState'
+import type { GenericFormSubmitEvent } from '@/types/GenericFormSubmitEvent'
 import { useRoom } from '@/stores/room'
+import type { FormSubmitEvent } from '@primevue/forms'
 
 const { getFieldFromDirtyMap, updateDirtyMap } = useEagerValidation()
 const { createGame, joinGame } = useRoom()
@@ -17,9 +18,8 @@ const homeSchema = 	v.object({
 })
 
 const resolver = valibotResolver(homeSchema)
-
 type HomeForm = v.InferOutput<typeof homeSchema>
-type HomeFormState = GenericFormFieldState<HomeForm>
+type HomeFormSubmitEvent = GenericFormSubmitEvent<keyof HomeForm>
 
 const initialValues = reactive<HomeForm>({
 	// nickname: 'bob',
@@ -28,15 +28,19 @@ const initialValues = reactive<HomeForm>({
 	roomCode: '',
 })
 
-async function callCreateGame(e: HomeFormState) {
-	debugger
-	if (!e.valid) return
-	await createGame(e.roomCode.value, e.nickname.value)
-}
+const buttons = ref(['Join', 'Create'])
+const selectedButton = ref(buttons.value[0])
 
-async function callJoinGame(e: HomeFormState) {
+async function onSubmit(evt: FormSubmitEvent) {
+	const e = evt as HomeFormSubmitEvent
 	if (!e.valid) return
-	await joinGame(e.roomCode.value, e.nickname.value)
+
+	if (selectedButton.value === 'Join') {
+		await joinGame(e.values.nickname, e.values.roomCode)
+	}
+	else if (selectedButton.value === 'Create') {
+		await createGame(e.values.nickname, e.values.roomCode)
+	}
 }
 
 </script>
@@ -48,12 +52,19 @@ async function callJoinGame(e: HomeFormState) {
 				<h1>SignalR Game</h1>
 				<Card>
 					<template #content>
+						<SelectButton
+							class="w-full w-full-button"
+							v-model="selectedButton"
+							:options="buttons"
+							size="large"
+							:allowEmpty="false"
+						/>
 						<Form
-							v-slot="$form"
 							:initialValues
 							:resolver
 							:validateOnValueUpdate="false"
 							:validateOnBlur="true"
+							@submit="onSubmit"
 						>
 							<FormField
 								v-slot="$field"
@@ -88,15 +99,12 @@ async function callJoinGame(e: HomeFormState) {
 							</FormField>
 
 							<div class="home-buttons">
-								<Button type="submit"
-									severity="secondary"
-									label="Join"
-									@click="callJoinGame($form as any)" />
-								<div>&nbsp;</div>
-								<Button type="submit"
-									severity="secondary"
-									label="Create"
-									@click="callCreateGame($form as any)" />
+								<Button
+									type="submit"
+									severity="primary"
+									:label="selectedButton"
+									class="w-full"
+								/>
 							</div>
 						</Form>
 					</template>
@@ -151,8 +159,8 @@ input {
 	width: 100%;
 }
 
-.p-button {
-	width: 100%;
+.p-selectbutton {
+	margin-bottom: 16px;
 }
 
 .home-buttons {
@@ -161,11 +169,4 @@ input {
 	justify-content: space-between;
 	align-items: center;
 }
-
-.or {
-	font-size: 1.25rem;
-	font-weight: bold;
-	color: var(--p-	text-color);
-}
-
 </style>

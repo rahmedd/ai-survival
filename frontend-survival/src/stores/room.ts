@@ -42,9 +42,11 @@ export const useRoom = defineStore('room', () => {
 		try {
 			const res = await signalr.invoke(
 				'createRoom',
-				roomCode,
 				nickname,
+				roomCode,
 			)
+
+			console.log(res)
 		}
 		catch (ex) {
 			console.log(ex)
@@ -54,9 +56,9 @@ export const useRoom = defineStore('room', () => {
 	async function joinGame(roomCode: string, nickname: string) {
 		try {
 			const res = await signalr.invoke(
-				'joinRoom',
-				roomCode,
+				'createRoom',
 				nickname,
+				roomCode,
 			)
 		}
 		catch (ex) {
