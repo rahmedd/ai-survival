@@ -16,9 +16,11 @@
   },
   "dependencies": {
     "@dreamonkey/vue-signalr": "^1.2.0",
+    "@faker-js/faker": "^9.3.0",
     "@microsoft/signalr": "^8.0.7",
     "@primevue/forms": "^4.2.5",
     "@primevue/themes": "^4.2.5",
+    "@vueuse/core": "^12.3.0",
     "axios": "^1.7.9",
     "pinia": "^2.3.0",
     "primevue": "^4.2.5",

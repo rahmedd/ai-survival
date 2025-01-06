@@ -32,11 +32,13 @@ import {
 
 
 const connection = new HubConnectionBuilder().withUrl('/api/hub').build()
+// connection.connectionId
 
 const app = createApp(App)
 
 app.use(VueSignalR, {
 	connection,
+	autoOffInsideComponentScope: true,
 	failFn: () => {
 		console.log('signalr conn failed.')
 	},

@@ -15,9 +15,16 @@ public class RoomService
 		_redis = redis;
 	}
 
-	public async Task<Room> GetRoom(string groupName)
+	public async Task<Room?> GetRoom(string groupName)
 	{
 		var db = _redis.GetDatabase();
+		var roomExists = await db.KeyExistsAsync($"room:{groupName}");
+
+		if (!roomExists)
+		{
+			return null;
+		}
+
 		var players = await db.SetMembersAsync($"room:{groupName}:players");
 		var playerList = players.Select(p => p.ToString()).ToList();
 
@@ -37,6 +44,11 @@ public class RoomService
 	public async Task<string> GetRoomAsJson(string groupName)
 	{
 		var room = await GetRoom(groupName);
+		if (room == null)
+		{
+			return "";
+		}
+
 		return System.Text.Json.JsonSerializer.Serialize(room);
 	}
 
@@ -66,6 +78,56 @@ public class RoomService
 
 		await db.SetAddAsync($"room:{groupName}:players", connectionId); // create room
 		await db.StringSetAsync($"room:{groupName}:timer", -1); // add gamer timer
+
+		// add player to room
+		await db.HashSetAsync($"player:{connectionId}",
+        [
+			new HashEntry("id", connectionId),
+			new HashEntry("username", username),
+			new HashEntry("roomId", groupName),
+			new HashEntry("health", 5),
+			new HashEntry("host", host),
+		]);
+	}
+
+	public async Task CreateRoom(string connectionId, string groupName, string username)
+	{
+		var db = _redis.GetDatabase();
+
+		var room = await GetRoom(groupName);
+		var playersExist = room?.Players.Count > 0;
+		var gameExists = room != null;
+
+		if (room != null && playersExist)
+		{
+			return;
+		}
+
+		var host = !gameExists && !playersExist;
+
+		await db.SetAddAsync($"room:{groupName}:players", connectionId); // create room
+		await db.StringSetAsync($"room:{groupName}:timer", -1); // add gamer timer
+
+		// add player to room
+		await db.HashSetAsync($"player:{connectionId}",
+        [
+			new HashEntry("id", connectionId),
+			new HashEntry("username", username),
+			new HashEntry("roomId", groupName),
+			new HashEntry("health", 5),
+			new HashEntry("host", host),
+		]);
+	}
+
+	public async Task JoinRoom(string connectionId, string groupName, string username)
+	{
+		var db = _redis.GetDatabase();
+
+		var room = await GetRoom(groupName);
+		var playersExist = room?.Players.Count > 0;
+		var gameExists = room != null;
+
+		var host = !gameExists && !playersExist;
 
 		// add player to room
 		await db.HashSetAsync($"player:{connectionId}",

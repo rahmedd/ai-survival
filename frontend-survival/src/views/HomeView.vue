@@ -1,46 +1,72 @@
 <script setup lang="ts">
-import InputText from 'primevue/inputtext'
-import Button from 'primevue/button'
-import { reactive, ref } from 'vue'
-import { valibotResolver } from '@primevue/forms/resolvers/valibot'
-import * as v from 'valibot'
-import { useEagerValidation } from '@/composables/useEagerValidation'
-import type { GenericFormSubmitEvent } from '@/types/GenericFormSubmitEvent'
-import { useRoom } from '@/stores/room'
-import type { FormSubmitEvent } from '@primevue/forms'
+// external libs
+import { ref } from 'vue'
+import { faker } from '@faker-js/faker/locale/en_US'
 
-const { getFieldFromDirtyMap, updateDirtyMap } = useEagerValidation()
+// primevue
+import type { SelectButtonChangeEvent } from 'primevue/selectbutton'
+
+// composables
+import { useRoom } from '@/stores/room'
+
+// types
+
+// components
+import RoomForm	from '@/components/RoomForm.vue'
+import type { JoinCreateRoom } from '@/types/JoinCreateRoom'
+
+
 const { createGame, joinGame } = useRoom()
 
-const homeSchema = 	v.object({
-	nickname: v.pipe(v.string(), v.minLength(5, 'Minimum of 5 characters')),
-	roomCode: v.pipe(v.string(), v.minLength(5, 'Minimum of 5 characters')),
-})
-
-const resolver = valibotResolver(homeSchema)
-type HomeForm = v.InferOutput<typeof homeSchema>
-type HomeFormSubmitEvent = GenericFormSubmitEvent<keyof HomeForm>
-
-const initialValues = reactive<HomeForm>({
-	// nickname: 'bob',
-	// roomCode: 'abc-123',
-	nickname: '',
-	roomCode: '',
-})
 
 const buttons = ref(['Join', 'Create'])
 const selectedButton = ref(buttons.value[0])
 
-async function onSubmit(evt: FormSubmitEvent) {
-	const e = evt as HomeFormSubmitEvent
-	if (!e.valid) return
-
+async function onSubmit(e: JoinCreateRoom) {
 	if (selectedButton.value === 'Join') {
-		await joinGame(e.values.nickname, e.values.roomCode)
+		await joinGame(e.nickname, e.roomCode)
 	}
 	else if (selectedButton.value === 'Create') {
-		await createGame(e.values.nickname, e.values.roomCode)
+		await createGame(e.nickname, e.roomCode)
 	}
+}
+
+function onCreateSelection(e: SelectButtonChangeEvent) {
+	if (e.value === 'Join') {
+		
+	}
+	else if (e.value === 'Create') {
+		
+	}
+}
+
+function generateRandomRoom(): string {
+	const list = [
+		faker.animal.type(),
+		faker.company.buzzVerb(),
+		// faker.company.buzzNoun(),
+		// faker.food.fruit(),
+		// faker.food.vegetable(),
+		faker.number.int({ min: 0, max: 99 }),
+	]
+
+	return list.join(' ').replace(/\s+/g, '-')
+}
+
+function generateRandomUsername(): string {
+	const list = [
+		faker.food.fruit(),
+		faker.food.vegetable(),
+	]
+
+	let ret = ''
+
+	list.forEach(i => {
+		const temp = i.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('')
+		ret += temp
+	})
+
+	return ret
 }
 
 </script>
@@ -58,55 +84,22 @@ async function onSubmit(evt: FormSubmitEvent) {
 							:options="buttons"
 							size="large"
 							:allowEmpty="false"
+							@change="onCreateSelection"
 						/>
-						<Form
-							:initialValues
-							:resolver
-							:validateOnValueUpdate="false"
-							:validateOnBlur="true"
-							@submit="onSubmit"
-						>
-							<FormField
-								v-slot="$field"
-								name="nickname"
-								:validateOnValueUpdate="getFieldFromDirtyMap(`nickname`)"
-							>
-								<label>Nickname</label>
-								<InputText type="text" placeholder="Nickname" @blur="updateDirtyMap($field)"/>
-								<Message v-if="$field?.invalid"
-									severity="error"
-									size="small"
-									variant="simple"
-								>
-									{{ $field.error?.message }}
-								</Message>
-							</FormField>
-
-							<FormField
-								v-slot="$field"
-								name="roomCode"
-								:validateOnValueUpdate="getFieldFromDirtyMap(`roomCode`)"
-							>
-								<label>Room code</label>
-								<InputText type="text" placeholder="Room code" />
-								<Message v-if="$field?.invalid"
-									severity="error"
-									size="small"
-									variant="simple"
-								>
-									{{ $field.error?.message }}
-								</Message>
-							</FormField>
-
-							<div class="home-buttons">
-								<Button
-									type="submit"
-									severity="primary"
-									:label="selectedButton"
-									class="w-full"
-								/>
-							</div>
-						</Form>
+						<template v-if="selectedButton === 'Join'">
+							<RoomForm
+								:nickname="generateRandomUsername()"
+								:roomCode="``"
+								@submit="onSubmit"
+							></RoomForm>
+						</template>
+						<template v-else-if="selectedButton === 'Create'">
+							<RoomForm
+								:nickname="generateRandomUsername()"
+								:roomCode="generateRandomRoom()"
+								@submit="onSubmit"
+							></RoomForm>
+						</template>
 					</template>
 				</Card>
 			</div>

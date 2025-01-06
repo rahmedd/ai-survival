@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.BearerToken;
 using Microsoft.AspNetCore.SignalR;
 using api.Hubs;
 using Bogus;
+using api.Services;
 
 // using api.DTOs;
 // using api.Services;
@@ -15,10 +16,12 @@ namespace api.Controllers;
 public class RoomController : ControllerBase
 {
 	private readonly IHubContext<GameHub> _hubContext;
+	private readonly RoomService _roomService;
 
-	public RoomController(IHubContext<GameHub> hubContext)
+	public RoomController(IHubContext<GameHub> hubContext, RoomService roomService)
 	{
 		_hubContext = hubContext;
+		_roomService = roomService;
 	}
 
 	[HttpGet("InitUser")]
@@ -29,17 +32,36 @@ public class RoomController : ControllerBase
 		return TypedResults.Ok();
 	}
 
-
-	// [HttpPost("CreateGame")]
-	// public async Task<Results<Ok, ValidationProblem>> CreateGame()
+	// [HttpGet("CheckRoomAvailability")]
+	// public async Task<Results<Ok<BaseResponseEmpty>, ValidationProblem>> CheckRoomAvailability(string roomId)
 	// {
-	// 	var faker = new Faker();
-	// 	string name = faker.Random.Words(3).ToLower().Replace(' ', '-').ToLower();
-	// 	await _hubContext.Clients.Group(name).SendAsync("newMessage");
-	// 	// await _hubContext.Groups.AddToGroupAsync(123, name);
-		
-	// 	return TypedResults.Ok();
+	// 	bool isAvailable = await _roomService.GetRoom(roomId) is null;
+	// 	var ret = new BaseResponseEmpty(isAvailable, isAvailable ? "Room is available" : "Room is not available");
+	// 	return TypedResults.Ok(ret);
 	// }
+
+	[HttpPost("CreateGame")]
+	public async Task<Results<Ok<BaseResponseEmpty>, ValidationProblem>> CreateGame(
+		string connectionId,
+		string groupName,
+		string username
+	)
+	{
+		var room = await _roomService.GetRoom(groupName);
+		if (room != null)
+		{
+			return TypedResults.Ok(new BaseResponseEmpty(false, "Room already exists"));
+		}
+
+		await _roomService.CreateRoom(connectionId, groupName, username);
+		await _hubContext.Groups.AddToGroupAsync(connectionId, groupName); // automatically adds or creates event group
+		await _hubContext.Clients.Group(groupName).SendAsync("Send", $"{connectionId} has joined the group {groupName}.");
+
+		var roomJson = await _roomService.GetRoomAsJson(groupName);
+		await _hubContext.Clients.Group(groupName).SendAsync("JSON-room", roomJson);
+		
+		return TypedResults.Ok(new BaseResponseEmpty(true, "Game created"));
+	}
 
 	// [HttpPost("Register")]
 	// public async Task<Results<Ok, ValidationProblem>> Register([FromBody] RegisterRequestDto req)

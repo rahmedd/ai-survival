@@ -52,8 +52,25 @@ public class GameHub : Hub
 		// 	);
 		// }
 
+		var roomExists = await _roomService.GetRoom(groupName);
+		if (roomExists != null)
+		{
+			await Clients.Caller.SendAsync("Send", "Room already exists.");
+			return;
+		}
+
 		await _roomService.CreateOrJoinRoom(Context.ConnectionId, groupName, username);
 		await Groups.AddToGroupAsync(Context.ConnectionId, groupName); // automatically adds or creates event group
+		await Clients.Group(groupName).SendAsync("Send", $"{Context.ConnectionId} has joined the group {groupName}.");
+
+		var roomJson = await _roomService.GetRoomAsJson(groupName);
+		await Clients.Group(groupName).SendAsync("JSON-room", roomJson);
+	}
+
+	public async Task JoinRoom(string groupName, string username)
+	{
+		await _roomService.CreateOrJoinRoom(Context.ConnectionId, groupName, username);
+		await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
 		await Clients.Group(groupName).SendAsync("Send", $"{Context.ConnectionId} has joined the group {groupName}.");
 
 		var roomJson = await _roomService.GetRoomAsJson(groupName);
@@ -96,9 +113,8 @@ public class GameHub : Hub
 		{
 			return;
 		}
-		
-		Room room = await _roomService.GetRoom(player.RoomId);
-		var roomJson = System.Text.Json.JsonSerializer.Serialize(room);
+
+		var roomJson = await _roomService.GetRoomAsJson(player.RoomId);
 		await Clients.Group(player.RoomId).SendAsync("JSON-room", roomJson);
 
 		// return base.OnDisconnectedAsync(ex);
@@ -130,9 +146,19 @@ public class GameHub : Hub
 			.UsingJobData("roomId", player.RoomId)
 			.Build();
 
-		var trigger = TriggerBuilder.Create()
-			.WithIdentity($"endGameTrigger-{player.RoomId}", "endGameGroup")
-			.StartAt(DateBuilder.FutureDate(gameLength, IntervalUnit.Second))
+		// var trigger = TriggerBuilder.Create()
+		// 	.WithIdentity($"endGameTrigger-{player.RoomId}", "endGameGroup")
+		// 	.StartAt(DateBuilder.FutureDate(gameLength, IntervalUnit.Second))
+		// 	.Build();
+
+		ITrigger trigger = TriggerBuilder.Create()
+			.WithIdentity($"TimerTrigger-{player.RoomId}", "TimerGroup")
+			.StartNow()
+			.WithSimpleSchedule(x => x
+				.WithIntervalInSeconds(1)
+				.RepeatForever()
+			)
+			.EndAt(DateBuilder.FutureDate(gameLength, IntervalUnit.Second))
 			.Build();
 
 		await _scheduler.ScheduleJob(job, trigger);

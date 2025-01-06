@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { useSignalR } from '@dreamonkey/vue-signalr'
+import axios from 'axios'
 
 import type { Room } from '@/types/Room'
 
@@ -45,11 +46,11 @@ export const useRoom = defineStore('room', () => {
 
 	async function createGame(roomCode: string, nickname: string) {
 		try {
-			const res = await signalr.invoke(
-				'createRoom',
-				nickname,
-				roomCode,
-			)
+			const res = await axios.post(`${import.meta.env.VITE_API_URL}/Room/CreateGame`, {
+				connectionId: 'NOT_IMPLEMENTED',
+				groupName: roomCode,
+				username: nickname,
+			})
 		}
 		catch (ex) {
 			console.log(ex)
