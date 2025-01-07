@@ -31,8 +31,10 @@ import {
 } from 'primevue'
 
 
-const connection = new HubConnectionBuilder().withUrl('/api/hub').build()
-// connection.connectionId
+const connection = new HubConnectionBuilder()
+	.withUrl('/api/hub')
+	.withAutomaticReconnect()
+	.build()
 
 const app = createApp(App)
 
