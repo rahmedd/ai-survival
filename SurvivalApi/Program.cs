@@ -3,6 +3,9 @@ using api.Hubs;
 using api.Services;
 using Quartz;
 using Quartz.AspNetCore;
+using Microsoft.EntityFrameworkCore;
+using api.Data;
+
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
@@ -10,11 +13,11 @@ builder.Configuration.AddEnvironmentVariables();
 var redisConnectionString = builder.Configuration["ConnectionStrings:REDIS_CONNECTION_STRING"] ?? throw new ArgumentNullException("REDIS_CONNECTION_STRING", "Connection string 'REDIS_CONNECTION_STRING' not found.");
 builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConnectionString));
 
-// var connectionString = builder.Configuration.GetValue<string>("DB_CONNECTION_STRING") ?? throw new ArgumentNullException("DB_CONNECTION_STRING", "Connection string 'DB_CONNECTION_STRING' not found.");
-// builder.Services.AddDbContext<AppDbContext>(options =>
-// {
-// 	options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
-// });
+var connectionString = builder.Configuration["ConnectionStrings:DB_CONNECTION_STRING"] ?? throw new ArgumentNullException("DB_CONNECTION_STRING", "Connection string 'DB_CONNECTION_STRING' not found.");
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+	options.UseNpgsql(connectionString);
+});
 
 builder.Services.AddSignalR();
 builder.Services.AddControllers();
