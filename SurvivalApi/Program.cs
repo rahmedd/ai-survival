@@ -45,6 +45,16 @@ builder.Services.AddQuartzServer(options =>
 builder.Services.AddScoped<RoomService>();
 // builder.Services.AddScoped<GeoService>();
 
+builder.Services.AddCors(options =>
+{
+	options.AddPolicy("AllowFrontend", policy =>
+	{
+		policy.WithOrigins("http://localhost:5173")
+			.AllowAnyHeader()
+			.AllowAnyMethod();
+	});
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -79,5 +89,7 @@ app.MapHub<GameHub>("/api/hub");
 // app.MapCo
 
 app.UsePathBase("/api");
+
+app.UseCors("AllowFrontend");
 
 app.Run();
