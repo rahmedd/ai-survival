@@ -88,6 +88,7 @@ function generateRandomUsername(): string {
 						/>
 						<template v-if="selectedButton === 'Join'">
 							<RoomForm
+								mode="Join"
 								:nickname="generateRandomUsername()"
 								:roomCode="``"
 								@submit="onSubmit"
@@ -95,6 +96,7 @@ function generateRandomUsername(): string {
 						</template>
 						<template v-else-if="selectedButton === 'Create'">
 							<RoomForm
+								mode="Create"
 								:nickname="generateRandomUsername()"
 								:roomCode="generateRandomRoom()"
 								@submit="onSubmit"

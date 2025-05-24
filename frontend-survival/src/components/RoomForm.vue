@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // external libs
-import { reactive, ref } from 'vue'
+import { reactive } from 'vue'
 
 // primevue
 import { valibotResolver } from '@primevue/forms/resolvers/valibot'
@@ -15,6 +15,7 @@ import { joinCreateRoomSchema, type JoinCreateRoom } from '@/types/JoinCreateRoo
 
 
 const props = defineProps<{
+	mode: 'Join' | 'Create'
 	nickname: string
 	roomCode: string
 }>()
@@ -31,9 +32,6 @@ const initialValues = reactive<JoinCreateRoom>({
 	nickname:  props.nickname,
 	roomCode: props.roomCode,
 })
-
-const buttons = ref(['Join', 'Create'])
-const selectedButton = ref(buttons.value[0])
 
 async function onSubmit(evt: FormSubmitEvent) {
 	const e = evt as GenericFormSubmitEvent<JoinCreateRoom>
@@ -89,7 +87,7 @@ async function onSubmit(evt: FormSubmitEvent) {
 			<Button
 				type="submit"
 				severity="primary"
-				:label="selectedButton"
+				:label="props.mode"
 				class="w-full"
 			/>
 		</div>

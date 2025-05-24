@@ -6,6 +6,14 @@ meta {
 
 post {
   url: {{BASE_URL}}/Room/CreateGame
-  body: none
+  body: json
   auth: none
+}
+
+body:json {
+  {
+    "ConnectionId": "abc",
+    "GroupName": "def",
+    "Username": "ghi"
+  }
 }

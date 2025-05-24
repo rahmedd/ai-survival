@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.SignalR;
 using api.Hubs;
 using Bogus;
 using api.Services;
+using api.Models.DTOs;
 
 // using api.DTOs;
 // using api.Services;
@@ -42,23 +43,21 @@ public class RoomController : ControllerBase
 
 	[HttpPost("CreateGame")]
 	public async Task<Results<Ok<BaseResponseEmpty>, ValidationProblem>> CreateGame(
-		string connectionId,
-		string groupName,
-		string username
+		[FromBody] CreateGameRequest req
 	)
 	{
-		var room = await _roomService.GetRoom(groupName);
+		var room = await _roomService.GetRoom(req.GroupName);
 		if (room != null)
 		{
 			return TypedResults.Ok(new BaseResponseEmpty(false, "Room already exists"));
 		}
 
-		await _roomService.CreateRoom(connectionId, groupName, username);
-		await _hubContext.Groups.AddToGroupAsync(connectionId, groupName); // automatically adds or creates event group
-		await _hubContext.Clients.Group(groupName).SendAsync("Send", $"{connectionId} has joined the group {groupName}.");
+		await _roomService.CreateRoom(req.ConnectionId, req.GroupName, req.Username);
+		await _hubContext.Groups.AddToGroupAsync(req.ConnectionId, req.GroupName); // automatically adds or creates event group
+		await _hubContext.Clients.Group(req.GroupName).SendAsync("Send", $"{req.ConnectionId} has joined the group {req.GroupName}.");
 
-		var roomJson = await _roomService.GetRoomAsJson(groupName);
-		await _hubContext.Clients.Group(groupName).SendAsync("JSON-room", roomJson);
+		var roomJson = await _roomService.GetRoomAsJson(req.GroupName);
+		await _hubContext.Clients.Group(req.GroupName).SendAsync("JSON-room", roomJson);
 		
 		return TypedResults.Ok(new BaseResponseEmpty(true, "Game created"));
 	}

@@ -51,7 +51,8 @@ builder.Services.AddCors(options =>
 	{
 		policy.WithOrigins("http://localhost:5173")
 			.AllowAnyHeader()
-			.AllowAnyMethod();
+			.AllowAnyMethod()
+			.AllowCredentials();
 	});
 });
 
@@ -66,22 +67,24 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Add middleware to set AnonymousId cookie for every user
+app.Use(async (context, next) =>
+{
+	if (!context.Request.Cookies.ContainsKey("AnonymousId"))
+	{
+		var sessionId = Guid.NewGuid().ToString();
+		context.Response.Cookies.Append("AnonymousId", sessionId, new CookieOptions
+		{
+			MaxAge = TimeSpan.FromDays(30),
+			SameSite = SameSiteMode.Strict,
+			Secure = true
+		});
+	}
+	
+	await next();
+});
+
 app.UseAuthorization();
-
-app.MapGet("/api/test/ollama", async () => { 
-	var ollamaService = new OllamaService();
-	await ollamaService.TestSendToOllama();
-});
-
-app.MapGet("/api/test/create", async () => { 
-	var ollamaService = new OllamaService();
-	await ollamaService.TestCreateScenario();
-});
-
-app.MapGet("/api/test/run", async () => { 
-	var ollamaService = new OllamaService();
-	await ollamaService.TestRunScenario();
-});
 
 app.MapControllers();
 
