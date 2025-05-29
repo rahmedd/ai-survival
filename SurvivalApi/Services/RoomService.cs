@@ -129,15 +129,17 @@ public class RoomService
 
 		var host = !gameExists && !playersExist;
 
-		// add player to room
+		// create player
 		await db.HashSetAsync($"player:{connectionId}",
-        [
+		[
 			new HashEntry("id", connectionId),
 			new HashEntry("username", username),
 			new HashEntry("roomId", groupName),
 			new HashEntry("health", 5),
 			new HashEntry("host", host),
 		]);
+		
+		await db.SetAddAsync($"room:{groupName}:players", connectionId); // add player to room player set
 	}
 
 	public async Task<Player?> GetPlayer(string connectionId)

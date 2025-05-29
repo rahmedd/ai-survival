@@ -39,7 +39,7 @@ public class GameHub : Hub
 
 	public async Task JoinRoom(string groupName, string username)
 	{
-		await _roomService.CreateRoom(Context.ConnectionId, groupName, username);
+		await _roomService.JoinRoom(Context.ConnectionId, groupName, username);
 		await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
 		await Clients.Group(groupName).SendAsync("Send", $"{Context.ConnectionId} has joined the group {groupName}.");
 
