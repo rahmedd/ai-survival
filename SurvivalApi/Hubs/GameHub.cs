@@ -29,36 +29,6 @@ public class GameHub : Hub
 
 	public async Task CreateRoom(string groupName, string username)
 	{
-		// if (groupName == "" || groupName.Length < 6)
-		// {
-		// 	var faker = new Faker();
-		// 	groupName = faker.Random.Words(4);
-		// }
-
-		// // if group exists, add player to group
-		// if (Context.Items.Any(x => (string)x.Key == groupName))
-		// {
-		// 	List<Player>? room = Context.Items.First(i => (string)i.Key == groupName).Value as List<Player>;
-		// 	if (room != null)
-		// 	{
-		// 		room.Add(new Player(Context.ConnectionId, username));
-		// 	}
-		// }
-		// // if group does not exist, create group and add player to group
-		// else
-		// {
-		// 	Context.Items[groupName] = new List<Player>(
-		// 		[new Player(Context.ConnectionId, username)]
-		// 	);
-		// }
-
-		var roomExists = await _roomService.GetRoom(groupName);
-		if (roomExists != null)
-		{
-			await Clients.Caller.SendAsync("Send", "Room already exists.");
-			return;
-		}
-
 		await _roomService.CreateRoom(Context.ConnectionId, groupName, username);
 		await Groups.AddToGroupAsync(Context.ConnectionId, groupName); // automatically adds or creates event group
 		await Clients.Group(groupName).SendAsync("Send", $"{Context.ConnectionId} has joined the group {groupName}.");
