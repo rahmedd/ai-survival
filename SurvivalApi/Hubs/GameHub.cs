@@ -59,7 +59,7 @@ public class GameHub : Hub
 			return;
 		}
 
-		await _roomService.CreateOrJoinRoom(Context.ConnectionId, groupName, username);
+		await _roomService.CreateRoom(Context.ConnectionId, groupName, username);
 		await Groups.AddToGroupAsync(Context.ConnectionId, groupName); // automatically adds or creates event group
 		await Clients.Group(groupName).SendAsync("Send", $"{Context.ConnectionId} has joined the group {groupName}.");
 
@@ -69,7 +69,7 @@ public class GameHub : Hub
 
 	public async Task JoinRoom(string groupName, string username)
 	{
-		await _roomService.CreateOrJoinRoom(Context.ConnectionId, groupName, username);
+		await _roomService.CreateRoom(Context.ConnectionId, groupName, username);
 		await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
 		await Clients.Group(groupName).SendAsync("Send", $"{Context.ConnectionId} has joined the group {groupName}.");
 

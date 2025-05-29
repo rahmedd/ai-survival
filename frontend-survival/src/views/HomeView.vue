@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // external libs
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { faker } from '@faker-js/faker/locale/en_US'
 
 // primevue
@@ -17,17 +18,27 @@ import type { JoinCreateRoom } from '@/types/JoinCreateRoom'
 
 
 const { createGame, joinGame } = useRoom()
+const router = useRouter()
 
 
 const buttons = ref(['Join', 'Create'])
 const selectedButton = ref(buttons.value[0])
 
 async function onSubmit(e: JoinCreateRoom) {
+	let res: boolean = false
+
 	if (selectedButton.value === 'Join') {
-		await joinGame(e.nickname, e.roomCode)
+		res = await joinGame(e.roomCode, e.nickname)
 	}
 	else if (selectedButton.value === 'Create') {
-		await createGame(e.nickname, e.roomCode)
+		res = await createGame(e.roomCode, e.nickname)
+	}
+
+	if (res) {
+		router.push({ name: 'lobby' })
+	}
+	else {
+		console.error('Failed to join or create game')
 	}
 }
 

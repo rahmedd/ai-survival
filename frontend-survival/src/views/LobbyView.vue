@@ -98,6 +98,3 @@ async function startGame() {
 		<Button label="Change host" @click="changeHost"></Button> <!-- TODO Remove -->
 	</main>
 </template>
-
-
-

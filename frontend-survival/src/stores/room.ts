@@ -44,30 +44,88 @@ export const useRoom = defineStore('room', () => {
 		}
 	}
 
-	async function createGame(roomCode: string, nickname: string) {
+	function getAnonymousId() {
+		const anonymousId = document.cookie
+			.split('; ')
+			.find(row => row.startsWith('AnonymousId='))
+			?.split('=')[1]
+
+		if (!anonymousId) {
+			console.error('AnonymousId not found in cookies')
+			return null
+		}
+
+		return anonymousId
+	}
+
+	async function createGame(roomCode: string, nickname: string): Promise<boolean> {
 		try {
+			const anonId = getAnonymousId()
+
+			if (!anonId) {
+				console.error('AnonymousId is required to create a game')
+				return false
+			}
+
 			const res = await axios.post(`${import.meta.env.VITE_API_URL}/Room/CreateGame`, {
-				connectionId: 'NOT_IMPLEMENTED',
+				connectionId: anonId,
 				groupName: roomCode,
 				username: nickname,
 			})
+
+			if (res.data.success) {
+				await signalr.invoke(
+					'createRoom',
+					roomCode,
+					nickname,
+				)
+
+				return true
+			}
+			else {
+				console.error('Failed to create game:', res.data.message)
+			}
 		}
 		catch (ex) {
 			console.log(ex)
 		}
+
+		return false
 	}
 
-	async function joinGame(roomCode: string, nickname: string) {
+	async function joinGame(roomCode: string, nickname: string): Promise<boolean> {
 		try {
-			const res = await signalr.invoke(
-				'createRoom',
-				nickname,
-				roomCode,
-			)
+			const anonId = getAnonymousId()
+
+			if (!anonId) {
+				console.error('AnonymousId is required to create a game')
+				return false
+			}
+
+			const res = await axios.post(`${import.meta.env.VITE_API_URL}/Room/JoinGame`, {
+				connectionId: anonId,
+				groupName: roomCode,
+				username: nickname,
+			})
+
+			if (res.data.success) {
+				await signalr.invoke(
+					'joinRoom',
+					roomCode,
+					nickname,
+				)
+
+				return true
+			}
+			else {
+				console.error('Failed to create game:', res.data.message)
+			}
 		}
 		catch (ex) {
 			console.log(ex)
 		}
+
+		return false
 	}
 
 	async function startGame() {
@@ -108,5 +166,6 @@ export const useRoom = defineStore('room', () => {
 	return {
 		createGame,
 		joinGame,
+		getAnonymousId,
 	}
 })
