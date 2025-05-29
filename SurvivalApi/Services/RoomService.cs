@@ -1,6 +1,5 @@
 
 using StackExchange.Redis;
-using Bogus;
 using api.Models;
 using SurvivalApi.Models;
 
@@ -52,44 +51,6 @@ public class RoomService
 		return System.Text.Json.JsonSerializer.Serialize(room);
 	}
 
-	// public async Task CreateOrJoinRoom(string connectionId, string groupName, string username)
-	// {
-	// 	var db = _redis.GetDatabase();
-
-	// 	// var playerExists = await db.KeyExistsAsync($"player:{connectionId}");
-	// 	var gameExists = await db.KeyExistsAsync($"room:{groupName}");
-	// 	var playersExist = await db.SetLengthAsync($"room:{groupName}:players") > 0;
-	// 	var host = !gameExists && !playersExist;
-		
-	// 	if (groupName == "" || groupName.Length < 6)
-	// 	{
-	// 		var faker = new Faker();
-	// 		groupName = faker.Random.Words(4);
-	// 	}
-
-	// 	// rmeove from existing room and delete player
-	// 	var existingPlayerRoom = await db.HashGetAsync($"player:{connectionId}", "roomId");
-	// 	var existingPlayerRoomString = existingPlayerRoom.ToString();
-	// 	// if (playerExists && existingPlayerRoomString != groupName)
-	// 	if (existingPlayerRoomString.Length > 0)
-	// 	{
-	// 		await RemoveFromRoom(connectionId, existingPlayerRoomString);
-	// 	}
-
-	// 	await db.SetAddAsync($"room:{groupName}:players", connectionId); // create room
-	// 	await db.StringSetAsync($"room:{groupName}:timer", -1); // add gamer timer
-
-	// 	// add player to room
-	// 	await db.HashSetAsync($"player:{connectionId}",
-    //     [
-	// 		new HashEntry("id", connectionId),
-	// 		new HashEntry("username", username),
-	// 		new HashEntry("roomId", groupName),
-	// 		new HashEntry("health", 5),
-	// 		new HashEntry("host", host),
-	// 	]);
-	// }
-
 	public async Task CreateRoom(string connectionId, string groupName, string username)
 	{
 		var db = _redis.GetDatabase();
@@ -105,18 +66,9 @@ public class RoomService
 
 		var host = !gameExists && !playersExist;
 
-		await db.SetAddAsync($"room:{groupName}:players", connectionId); // create room player set
+		// create player and add to room
+		await AddPlayer(connectionId, groupName, username, host);
 		await db.StringSetAsync($"room:{groupName}:timer", -1); // add gamer timer
-
-		// add player to room
-		await db.HashSetAsync($"player:{connectionId}",
-        [
-			new HashEntry("id", connectionId),
-			new HashEntry("username", username),
-			new HashEntry("roomId", groupName),
-			new HashEntry("health", 5),
-			new HashEntry("host", host),
-		]);
 	}
 
 	public async Task JoinRoom(string connectionId, string groupName, string username)
@@ -129,17 +81,8 @@ public class RoomService
 
 		var host = !gameExists && !playersExist;
 
-		// create player
-		await db.HashSetAsync($"player:{connectionId}",
-		[
-			new HashEntry("id", connectionId),
-			new HashEntry("username", username),
-			new HashEntry("roomId", groupName),
-			new HashEntry("health", 5),
-			new HashEntry("host", host),
-		]);
-		
-		await db.SetAddAsync($"room:{groupName}:players", connectionId); // add player to room player set
+		// create player and add to room
+		await AddPlayer(connectionId, groupName, username, host);
 	}
 
 	public async Task<Player?> GetPlayer(string connectionId)
@@ -156,7 +99,25 @@ public class RoomService
 		return player;
 	}
 
-	public async Task RemoveFromRoom(string connectionId, string? groupName = null)
+	public async Task AddPlayer(string connectionId, string groupName, string username, bool isHost = false)
+	{
+		var db = _redis.GetDatabase();
+
+		// create player
+		await db.HashSetAsync($"player:{connectionId}",
+		[
+			new HashEntry("id", connectionId),
+			new HashEntry("username", username),
+			new HashEntry("roomId", groupName),
+			new HashEntry("health", 5),
+			new HashEntry("host", isHost),
+		]);
+		
+		// add player to room players set
+		await db.SetAddAsync($"room:{groupName}:players", connectionId);
+	}
+
+	public async Task RemovePlayer(string connectionId, string? groupName = null)
 	{
 		var db = _redis.GetDatabase();
 

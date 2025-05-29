@@ -77,7 +77,7 @@ public class GameHub : Hub
 	public override async Task OnDisconnectedAsync(Exception? ex)
 	{
 		var player = await _roomService.GetPlayer(Context.ConnectionId);
-		await _roomService.RemoveFromRoom(Context.ConnectionId);
+		await _roomService.RemovePlayer(Context.ConnectionId);
 
 		if (player == null ||  player.RoomId == null)
 		{
